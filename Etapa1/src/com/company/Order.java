@@ -8,6 +8,7 @@ import com.company.offer.BigOffer;
 import com.company.offer.KidsOffer;
 import com.company.offer.Offer;
 import com.company.product.Book;
+import com.company.service.OfferService;
 import com.company.user.User;
 
 import java.util.*;
@@ -19,6 +20,7 @@ public class Order {
     private List<Offer> offers;
     private List<Book> books;
     private String address;
+    private OfferService offerService;
 
     public Order() {
         this.offers = new ArrayList<Offer>();
@@ -74,6 +76,7 @@ public class Order {
 
     public void reader(HashMap<Integer, Library> shops) {
         Scanner var = new Scanner(System.in);
+        offerService = OfferService.getInstance();
 
         System.out.print("Delivery address: ");
         this.address = var.nextLine();
@@ -142,11 +145,11 @@ public class Order {
                     Offer offer;
 
                     if (libraryType == 1) {
-                        offer = ((BigLibrary) this.shop).orderBigOffer((BigOffer) offers.get(choice));
+                        offer = offerService.orderBigOffer((BigOffer) offers.get(choice));
                         this.addOffer(offer);
                         this.shop.lowerStock(offer.getName());
                     } else if (libraryType == 2) {
-                        offer = ((KidsLibrary) this.shop).orderKidsOffer((KidsOffer) offers.get(choice));
+                        offer = offerService.orderKidsOffer((KidsOffer) offers.get(choice));
                         this.addOffer(offer);
                         this.shop.lowerStock(offer.getName());
                     } else {

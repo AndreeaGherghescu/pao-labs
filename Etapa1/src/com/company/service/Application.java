@@ -31,6 +31,7 @@ public class Application { // singleton
     private void userActions(Service service){
         Scanner var = new Scanner(System.in);
         this.listOfActionsForUser(service);
+        boolean out = false;
 
         while(true) {
             System.out.print("Please choose an option from 0 to 8: ");
@@ -38,36 +39,51 @@ public class Application { // singleton
             var.nextLine();
             System.out.println();
 
-            if (choice == 0) {
-                this.listOfActionsForUser(service);
-            } else if (choice == 1) {
-                //afisare magazine
-                service.listLibraries();
-            } else if (choice == 2) {
-                //afisare un singur magazin dupa nume
-                service.listLibrary();
-            } else if (choice == 3) {
-                //sortare magazine descrescator dupa rating
-                service.sortLibraries();
-            } else if (choice == 4) {
-                //plasare comanda
-                service.addOrder();
-            } else if (choice == 5) {
-                //anulare comanda
-                service.cancelOrder();
-            } else if (choice == 6) {
-                //delogare
-                service.signOut();
-                start();
+
+            switch (choice) {
+                case 0:
+                    this.listOfActionsForUser(service);
+                    break;
+                case 1:
+                    //afisare magazine
+                    service.listLibraries();
+                    break;
+                case 2:
+                    //afisare un singur magazin dupa nume
+                    service.listLibrary();
+                    break;
+                case 3:
+                    //sortare magazine descrescator dupa rating
+                    service.sortLibraries();
+                    break;
+                case 4:
+                    //plasare comanda
+                    service.addOrder();
+                    break;
+                case 5:
+                    //anulare comanda
+                    service.cancelOrder();
+                    break;
+                case 6:
+                    //delogare
+                    service.signOut();
+                    start();
+                    out = true;
+                    break;
+                case 7:
+                    //adaugare rating magazin
+                    service.rateLibrary();
+                    break;
+                case 8:
+                    //exit
+                    out = true;
+                    break;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+
+            if (out) {
                 break;
-            } else if (choice == 7) {
-                //adaugare rating magazin
-                service.rateLibrary();
-            } else if (choice == 8 ){
-                //exit
-                break;
-            } else {
-                System.out.println("Invalid option. Please try again.");
             }
         }
 
@@ -97,40 +113,56 @@ public class Application { // singleton
             int choice = var.nextInt();
             var.nextLine();
             System.out.println();
+            boolean out = false;
 
-            if (choice == 0) {
-                this.listOfActionsForAdmin(service);
-            } else if (choice == 1) {
-                //adaugare magazin
-                service.addLibrary();
-            } else if (choice == 2) {
-                //remove library
-                service.removeLibrary();
-            } else if (choice == 3) {
-                //adauga o carte
-                service.addBook();
-            } else if (choice == 4) {
-                //stergere carte
-                service.removeBook();
-            } else if (choice == 5) {
-                //adauga oferta
-                service.addOffer();
-            } else if (choice == 6) {
-                //delogare
-                service.signOut();
-                start();
+            switch (choice) {
+                case 0:
+                    this.listOfActionsForAdmin(service);
+                    break;
+                case 1:
+                    //adaugare magazin
+                    service.addLibrary();
+                    break;
+                case 2:
+                    //remove library
+                    service.removeLibrary();
+                    break;
+                case 3:
+                    //adauga o carte
+                    service.addBook();
+                    break;
+                case 4:
+                    //stergere carte
+                    service.removeBook();
+                    break;
+                case 5:
+                    //adauga oferta
+                    service.addOffer();
+                    break;
+                case 6:
+                    //delogare
+                    service.signOut();
+                    start();
+                    out = true;
+                    break;
+                case 7:
+                    //list libraries
+                    service.listLibraries();
+                    break;
+                case 8:
+                    //list one library
+                    service.listLibrary();
+                    break;
+                case 9:
+                    //exit
+                    out = true;
+                    break;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+
+            if (out) {
                 break;
-            } else if (choice == 7) {
-                //list libraries
-                service.listLibraries();
-            } else if (choice == 8) {
-                //list one library
-                service.listLibrary();
-            } else if (choice == 9 ){
-                //exit
-                break;
-            } else {
-                System.out.println("Invalid option. Please try again.");
             }
         }
     }

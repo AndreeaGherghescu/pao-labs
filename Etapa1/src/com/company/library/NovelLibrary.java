@@ -19,29 +19,6 @@ public class NovelLibrary extends Library{
     }
 
     @Override
-    public void read(){
-        Scanner var = new Scanner(System.in);
-
-        System.out.print("Novel Library's name: ");
-        this.name = var.nextLine();
-
-        System.out.println("Novel Library's offer: ");
-        System.out.print("How many novels do you want: ");
-        int n = var.nextInt();
-        var.nextLine();
-
-        for (int i = 0; i < n; i++) {
-            Novel novel = new Novel();
-            novel.read();
-            novels.add(novel);
-
-            System.out.print("Introduce the stock of <<" + novel.getTitle() + ">> : ");
-            int quantity = var.nextInt();
-            stock.put(novel.getTitle(), quantity);
-        }
-    }
-
-    @Override
     public String toString(){
         String output = "~~ Novel library ~~\n" + "Name: " + this.name + "\nRating: " + this.rating + "\nList of novels:\n";
 
@@ -67,17 +44,8 @@ public class NovelLibrary extends Library{
         return b;
     }
 
-    public void addNovel(Novel novel){
-        novels.add(novel);
-    }
-
-    public void removeNovel(Novel novel) {
-        for (Novel it: novels){
-            if(it.equals(novel)){
-                novels.remove(novel);
-                break;
-            }
-        }
+    public void setNovels(List<Novel> novels) {
+        this.novels = novels;
     }
 
     public boolean equals(Object obj){

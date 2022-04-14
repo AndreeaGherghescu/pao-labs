@@ -7,11 +7,11 @@ import com.company.library.Library;
 import com.company.library.NovelLibrary;
 import com.company.offer.BigOffer;
 import com.company.offer.KidsOffer;
+import com.company.offer.Offer;
 import com.company.product.Book;
 import com.company.product.ChildBook;
 import com.company.product.Manual;
 import com.company.product.Novel;
-import com.company.user.Login;
 import com.company.user.User;
 
 import java.util.*;
@@ -24,6 +24,8 @@ public class Service { // singleton
     private User currentUser;
     private int shopId;
     private int orderId;
+    private OfferService offerService;
+    private BookService bookService;
 
     private Service(){
         this.shops = new HashMap<Integer, Library>();
@@ -70,8 +72,29 @@ public class Service { // singleton
                 }
             } else if (option == 2) {
                 // sign up
-                User customer = new User();
-                customer.read();
+
+                // 1
+                System.out.print("Name: ");
+                String name = var.nextLine();
+                System.out.print("Email: ");
+                String email = var.nextLine();
+                String phoneNumber;
+
+                while(true) {
+                    System.out.print("Phone number: ");
+                    phoneNumber = var.nextLine();
+                    boolean ok = phoneNumber.matches("0[0-9]{9}");
+                    if (ok)
+                        break;
+                    else
+                        System.out.println("Please give a valid phone number.");
+                }
+                System.out.print("Password: ");
+                String password = var.nextLine();
+
+                User customer = new User(name, email, phoneNumber, password);
+
+                // 2
                 if(login.signUp(customer)) {
                     System.out.println("You have registered successfully!\n");
                     currentUser = customer;
@@ -126,6 +149,8 @@ public class Service { // singleton
 
     public void addLibrary() {
         Scanner var = new Scanner(System.in);
+        bookService = BookService.getInstance();
+        offerService = OfferService.getInstance();
 
         Library library;
 
@@ -139,14 +164,118 @@ public class Service { // singleton
             int option = var.nextInt();
             var.nextLine();
 
+            HashMap<String, Integer> stock = new HashMap<String, Integer>();
+
+            System.out.print("Library's name: ");
+            String name = var.nextLine();
+
             if (option == 1) {
-                library = new NovelLibrary();
+
+                // name, rating, stock, novels
+                List<Novel> novels = new ArrayList<Novel>();
+                System.out.print("How many novels does the library have? ");
+                int n = var.nextInt();
+
+                for (int i = 0; i < n; i++) {
+                    Novel novel = bookService.readNovel();
+                    novels.add(novel);
+
+                    System.out.print("Introduce the stock of <<" + novel.getTitle() + ">> : ");
+                    int quantity = var.nextInt();
+                    stock.put(novel.getTitle(), quantity);
+                }
+
+                library = new NovelLibrary(name, 0, stock, novels);
                 break;
             } else if (option == 2) {
-                library = new KidsLibrary();
+
+                // name, rating, stock, offers, books
+
+                List<ChildBook> books = new ArrayList<ChildBook>();
+                List<KidsOffer> offers = new ArrayList<KidsOffer>();
+
+                //System.out.println("-> Kids Library's list of kids books: ");
+                System.out.print("How many books do you want: ");
+                int n = var.nextInt();
+
+                for (int i = 0; i < n; i++) {
+                    ChildBook book = bookService.readChildBook();
+                    books.add(book);
+
+                    System.out.print("Introduce the stock of <<" + book.getTitle() + ">> : ");
+                    int quantity = var.nextInt();
+                    stock.put(book.getTitle(), quantity);
+                }
+
+                //System.out.println("->Kids library's list of offers: ");
+                System.out.print("How many offers: ");
+                n = var.nextInt();
+
+
+
+                for (int i = 0; i < n; i++) {
+                    KidsOffer offer = offerService.readKidsOffer();
+
+                    offers.add(offer);
+
+                    System.out.print("Introduce the stock of <<" + offer.getName() + ">> : ");
+                    int quantity = var.nextInt();
+                    stock.put(offer.getName(), quantity);
+                }
+
+                library = new KidsLibrary(name, 0, stock, offers, books);
                 break;
             } else if (option == 3) {
-                library = new BigLibrary();
+
+                // reading big library
+                // name, rating, stock, novels, offers, manuals
+
+                List<Novel> novels = new ArrayList<Novel>();
+                List<Manual> manuals = new ArrayList<Manual>();
+                List<BigOffer> offers = new ArrayList<BigOffer>();
+
+                //System.out.println("Library's list of novels: ");
+                System.out.print("How many novels does the library have? ");
+                int n = var.nextInt();
+
+                for (int i = 0; i < n; i++) {
+                    Novel novel = bookService.readNovel();
+                    novels.add(novel);
+
+                    System.out.print("Introduce the stock of <<" + novel.getTitle() + ">> : ");
+                    int quantity = var.nextInt();
+                    stock.put(novel.getTitle(), quantity);
+                }
+
+                //System.out.println("-> Library's list of offers: ");
+                System.out.print("How many offers does the library have? ");
+                n = var.nextInt();
+
+                for (int i = 0; i < n; i++) {
+                    BigOffer offer = offerService.readBigOffer();
+
+                    offers.add(offer);
+
+                    System.out.print("Introduce the stock of <<" + offer.getName() + ">> : ");
+                    int quantity = var.nextInt();
+                    stock.put(offer.getName(), quantity);
+                }
+
+                //System.out.println("->Library's list of manuals: ");
+                System.out.print("How many manuals does the library have? ");
+                n = var.nextInt();
+                for (int i = 0; i < n; i++){
+                    Manual manual = bookService.readManual();
+                    manuals.add(manual);
+
+                    System.out.print("Introduce the stock of <<" + manual.getTitle() + ">> : ");
+                    int quantity = var.nextInt();
+                    stock.put(manual.getTitle(), quantity);
+                }
+
+                library = new BigLibrary(name, 0, stock, novels, offers, manuals);
+
+                // stop
                 break;
             } else {
                 System.out.println("Invalid option. Please try again.");
@@ -154,7 +283,6 @@ public class Service { // singleton
         }
 
         shopId ++;
-        library.read();
         shops.put(shopId, library);
 
         System.out.println("Library added successfully!\n");
@@ -196,6 +324,7 @@ public class Service { // singleton
 
     public void addBook() {
         Scanner var  = new Scanner(System.in);
+        bookService = BookService.getInstance();
 
         Set set = shops.entrySet();
         boolean flag = false;
@@ -217,14 +346,18 @@ public class Service { // singleton
                             String option = var.nextLine();
 
                             if (option.equalsIgnoreCase("novel")) {
-                                book = new Novel();
-                                book.read();
-                                ((BigLibrary) entry.getValue()).addNovel((Novel) book);
+                                book = bookService.readNovel();
+
+                                List<Novel> novels = ((BigLibrary) entry.getValue()).getNovels();
+                                novels.add((Novel)book);
+                                ((BigLibrary) entry.getValue()).setNovels(novels);
                                 break;
                             } else if (option.equalsIgnoreCase("manual")) {
-                                book = new Manual();
-                                book.read();
-                                ((BigLibrary) entry.getValue()).addManual((Manual) book);
+                                book = bookService.readManual();
+
+                                List<Manual> manuals = ((BigLibrary) entry.getValue()).getManuals();
+                                manuals.add((Manual)book);
+                                ((BigLibrary) entry.getValue()).setManuals(manuals);
                                 break;
                             } else {
                                 System.out.println("Invalid option. Please try again.");
@@ -236,9 +369,11 @@ public class Service { // singleton
 
                     } else if (entry.getValue() instanceof NovelLibrary){
                         System.out.println("Novel library");
-                        Novel novel = new Novel();
-                        novel.read();
-                        ((NovelLibrary)entry.getValue()).addNovel((Novel)novel);
+                        Novel novel = bookService.readNovel();
+
+                        List<Novel> novels = ((NovelLibrary) entry.getValue()).getNovels();
+                        novels.add(novel);
+                        ((NovelLibrary) entry.getValue()).setNovels(novels);
 
                         System.out.print("Stock of the product: ");
                         int stock = var.nextInt();
@@ -246,9 +381,11 @@ public class Service { // singleton
 
                     } else {
                         System.out.println("Kids library");
-                        ChildBook childBook = new ChildBook();
-                        childBook.read();
-                        ((KidsLibrary)entry.getValue()).addBook((ChildBook) book);
+                        ChildBook childBook = bookService.readChildBook();
+
+                        List<ChildBook> books = ((KidsLibrary) entry.getValue()).getChildBooks();
+                        books.add((ChildBook) book);
+                        ((KidsLibrary) entry.getValue()).setBooks(books);
 
                         System.out.print("Stock of the product: ");
                         int stock = var.nextInt();
@@ -293,9 +430,25 @@ public class Service { // singleton
                             for (Book it: books) {
                                 if (it.getTitle().equalsIgnoreCase(option)) {
                                     if (it instanceof Novel){
-                                        ((BigLibrary)entry.getValue()).removeNovel((Novel)it);
+
+                                        List<Novel> novels = ((BigLibrary)entry.getValue()).getNovels();
+                                        for (Novel nov: novels){
+                                            if(nov.equals(it)){
+                                                novels.remove(it);
+                                                break;
+                                            }
+                                        }
+                                        ((BigLibrary)entry.getValue()).setNovels(novels);
+
                                     } else {
-                                        ((BigLibrary)entry.getValue()).removeManual((Manual)it);
+                                        List<Manual> manuals = ((BigLibrary)entry.getValue()).getManuals();
+                                        for (Manual man: manuals){
+                                            if(man.equals(it)){
+                                                manuals.remove(it);
+                                                break;
+                                            }
+                                        }
+                                        ((BigLibrary)entry.getValue()).setManuals(manuals);
                                     }
 
                                     ((BigLibrary)entry.getValue()).removeFromStock(it.getTitle());
@@ -320,7 +473,14 @@ public class Service { // singleton
 
                             for (Book it: books) {
                                 if (it.getTitle().equalsIgnoreCase(option)) {
-                                    ((NovelLibrary)entry.getValue()).removeNovel((Novel)it);
+                                    List<Novel> novels = ((NovelLibrary)entry.getValue()).getNovels();
+                                    for (Novel nov: novels){
+                                        if(nov.equals(it)){
+                                            novels.remove(it);
+                                            break;
+                                        }
+                                    }
+                                    ((NovelLibrary)entry.getValue()).setNovels(novels);
 
                                     ((NovelLibrary)entry.getValue()).removeFromStock(it.getTitle());
                                     flagb = true;
@@ -344,7 +504,15 @@ public class Service { // singleton
 
                             for (Book it: books) {
                                 if (it.getTitle().equalsIgnoreCase(option)) {
-                                    ((KidsLibrary)entry.getValue()).removeBook((ChildBook) it);
+
+                                    List<ChildBook> cbooks = ((KidsLibrary)entry.getValue()).getChildBooks();
+                                    for (ChildBook cb: cbooks){
+                                        if(cb.equals(it)){
+                                            cbooks.remove(it);
+                                            break;
+                                        }
+                                    }
+                                    ((KidsLibrary)entry.getValue()).setBooks(cbooks);
 
                                     ((KidsLibrary)entry.getValue()).removeFromStock(it.getTitle());
                                     flagb = true;
@@ -373,6 +541,7 @@ public class Service { // singleton
 
     public void addOffer() {
         Scanner var = new Scanner(System.in);
+        offerService = OfferService.getInstance();
 
         boolean flag = false;
         while (true) {
@@ -381,6 +550,8 @@ public class Service { // singleton
 
             Set set = shops.entrySet();
             Iterator it = set.iterator();
+
+
             while(it.hasNext()) {
                 Map.Entry entry = (Map.Entry)it.next();
                 if(((Library)entry.getValue()).getName().equalsIgnoreCase(name)){
@@ -388,19 +559,30 @@ public class Service { // singleton
 
                     if (entry.getValue() instanceof BigLibrary) {
                         System.out.println("Big library");
-                        BigOffer offer = new BigOffer();
-                        offer.read();
-                        ((BigLibrary)entry.getValue()).addOffer(offer);
+
+                        BigOffer offer = offerService.readBigOffer();
+
+                        List<Offer> offers = ((BigLibrary)entry.getValue()).getOffers();
+                        offers.add(offer);
+                        List<BigOffer> aux = (List<BigOffer>)(List<?>) offers;
+                        ((BigLibrary)entry.getValue()).setOffers(aux);
 
                         System.out.print("Introduce the stock of the offer: ");
                         int stock = var.nextInt();
                         ((BigLibrary)entry.getValue()).updateStock(offer.getName(), stock);
 
                     } else if (entry.getValue() instanceof KidsLibrary) {
+
+                        // name, manuals, price, book, toy
+
                         System.out.println("Kids library");
-                        KidsOffer offer = new KidsOffer();
-                        offer.read();
-                        ((KidsLibrary)entry.getValue()).addOffer(offer);
+
+                        KidsOffer offer = offerService.readKidsOffer();
+
+                        List<Offer> offers = ((KidsLibrary)entry.getValue()).getOffers();
+                        offers.add(offer);
+                        List<KidsOffer> aux = (List<KidsOffer>)(List<?>) offers;
+                        ((KidsLibrary)entry.getValue()).setOffers(aux);
 
                         System.out.print("Introduce the stock of the offer: ");
                         int stock = var.nextInt();

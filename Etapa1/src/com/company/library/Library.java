@@ -38,14 +38,24 @@ public abstract class Library {
         return this.name;
     }
 
-    public abstract void read();
-
     @Override
     public abstract String toString();
     public abstract List<Offer> getOffers();
     public abstract List<Book> getBooks();
     public double getRating() {
         return rating;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
+
+    public void setStock(HashMap<String, Integer> stock) {
+        this.stock = stock;
     }
 
     public void updateStock(String bookName, int stock) {

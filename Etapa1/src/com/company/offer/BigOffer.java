@@ -35,48 +35,6 @@ public class BigOffer extends Offer{
     }
 
     @Override
-    public void read(){
-        Scanner var = new Scanner(System.in);
-
-        System.out.print("Offer's name: ");
-        this.name = var.nextLine();
-
-        //System.out.println("-> offer's list of manuals: ");
-        System.out.print("How many manuals does the offer have? ");
-
-        int n = var.nextInt();
-
-        for (int i = 0; i < n; i++) {
-            System.out.println("Introduce manual number " + (i + 1) + ": ");
-            Manual manual = new Manual();
-            manual.read();
-            this.manuals.add(manual);
-        }
-
-        //System.out.println("-> offer's list of novels: ");
-        System.out.print("How many novels does the offer have? ");
-
-        n = var.nextInt();
-
-        for (int i = 0; i < n; i++) {
-            System.out.println("Introduce novel number " + (i + 1) + ": ");
-            Novel novel = new Novel();
-            novel.read();
-            this.novels.add(novel);
-        }
-
-        double totalPrice = 0;
-        for (Manual it: manuals) {
-            totalPrice += it.getPrice();
-        }
-        for (Novel it: novels) {
-            totalPrice += it.getPrice();
-        }
-
-        this.price = totalPrice;
-    }
-
-    @Override
     public String toString(){
         String output =  "~~ Big offer ~~\nName: " + this.getName() + "\nManuals options:\n";
 
@@ -92,5 +50,7 @@ public class BigOffer extends Offer{
         output += "Price: " + this.price + "\n";
         return output;
     }
+
+
 
 }

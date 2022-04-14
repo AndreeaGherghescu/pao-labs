@@ -21,7 +21,6 @@ public abstract class Book {
         return this.title;
     }
 
-    public abstract void read();
 
     @Override
     public abstract String toString();

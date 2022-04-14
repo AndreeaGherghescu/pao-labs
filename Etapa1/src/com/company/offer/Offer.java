@@ -19,8 +19,6 @@ public abstract class Offer {
         this.manuals = manuals;
     }
 
-    public abstract void read();
-
     @Override
     public abstract String toString();
 
@@ -34,5 +32,9 @@ public abstract class Offer {
 
     public List<Manual> getManuals() {
         return manuals;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
     }
 }
