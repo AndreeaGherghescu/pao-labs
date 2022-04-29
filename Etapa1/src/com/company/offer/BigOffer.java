@@ -2,53 +2,57 @@ package com.company.offer;
 
 import com.company.product.Manual;
 import com.company.product.Novel;
+import com.company.service.BookService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class BigOffer extends Offer{
-    private List<Novel> novels;
+    private List<Integer> novels;
 
     public BigOffer() {
-        this.novels = new ArrayList<Novel>();
+        this.novels = new ArrayList<Integer>();
+        this.manuals = new ArrayList<Integer>();
     }
 
-    public BigOffer(String name, List<Manual> manuals, List<Novel> novels) {
+    public BigOffer(String name, List<Integer> manuals, List<Integer> novels) {
+
         super(name, manuals);
         this.novels = novels;
 
+        this.bookService = BookService.getInstance();
         //calcul pret
         double totalPrice = 0;
-        for (Manual it: manuals){
-            totalPrice += it.getPrice();
+        for (Integer it: manuals){
+            totalPrice += bookService.getPriceById(it);
         }
-        for (Novel it: novels){
-            totalPrice += it.getPrice();
+        for (Integer it: novels){
+            totalPrice += bookService.getPriceById(it);
         }
 
         this.price = totalPrice;
     }
 
-    public List<Novel> getNovels() {
+    public List<Integer> getNovels() {
         return novels;
     }
 
     @Override
     public String toString(){
-        String output =  "~~ Big offer ~~\nName: " + this.getName() + "\nManuals options:\n";
+        StringBuilder output = new StringBuilder("~~ Big offer ~~\nName: " + this.getName() + "\nManuals options:\n");
 
-        for (Manual it : manuals) {
-            output += it;
+        for (Integer it : manuals) {
+            output.append(bookService.getBookById(it));
         }
 
-        output += "\nNovels options:\n";
-        for (Novel it : novels) {
-            output += it;
+        output.append("\nNovels options:\n");
+        for (Integer it : novels) {
+            output.append(bookService.getBookById(it));
         }
 
-        output += "Price: " + this.price + "\n";
-        return output;
+        output.append("Price: ").append(this.price).append("\n");
+        return output.toString();
     }
 
 

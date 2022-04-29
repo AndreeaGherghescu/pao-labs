@@ -20,11 +20,11 @@ public class Application { // singleton
         System.out.println("0. List all options"); //done
         System.out.println("1. List libraries"); //done
         System.out.println("2. List one library"); //done
-        System.out.println("3. Sort libraries by rating "); //
+        System.out.println("3. Sort libraries by rating "); // done
         System.out.println("4. Place an order"); // done
         System.out.println("5. Cancel an order"); // done
         System.out.println("6. Sign out"); //done
-        System.out.println("7. Rate one library"); //
+        System.out.println("7. Rate one library"); // done
         System.out.println("8. Exit"); //done
     }
 
@@ -95,13 +95,14 @@ public class Application { // singleton
         System.out.println("0. List all options"); //d one
         System.out.println("1. Add library"); // done
         System.out.println("2. Remove library"); // done
-        System.out.println("3. Add a book"); // done
-        System.out.println("4. Delete a book"); // done
-        System.out.println("5. Add an offer"); // done
-        System.out.println("6. Sign out"); // done
-        System.out.println("7. List libraries"); // done
-        System.out.println("8. List one library"); // done
-        System.out.println("9. Exit"); //done
+        System.out.println("3. Add book to repository"); // done
+        System.out.println("4. Add book to library");
+        System.out.println("5. Delete a book"); // done
+        System.out.println("6. Add an offer"); // done
+        System.out.println("7. Sign out"); // done
+        System.out.println("8. List libraries"); // done
+        System.out.println("9. List one library"); // done
+        System.out.println("10. Exit"); //done
     }
 
     private void adminActions(Service service) {
@@ -128,32 +129,36 @@ public class Application { // singleton
                     service.removeLibrary();
                     break;
                 case 3:
-                    //adauga o carte
+                    //adauga o carte in repo
                     service.addBook();
                     break;
                 case 4:
+                    //adauga o carte in librarie
+                    service.addBookToLibrary();
+                    break;
+                case 5:
                     //stergere carte
                     service.removeBook();
                     break;
-                case 5:
+                case 6:
                     //adauga oferta
                     service.addOffer();
                     break;
-                case 6:
+                case 7:
                     //delogare
                     service.signOut();
                     start();
                     out = true;
                     break;
-                case 7:
+                case 8:
                     //list libraries
                     service.listLibraries();
                     break;
-                case 8:
+                case 9:
                     //list one library
                     service.listLibrary();
                     break;
-                case 9:
+                case 10:
                     //exit
                     out = true;
                     break;

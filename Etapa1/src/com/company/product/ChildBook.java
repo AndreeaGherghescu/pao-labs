@@ -13,6 +13,9 @@ public class ChildBook extends Book{
         this.minAge = minAge;
     }
 
+    public int getMinAge() {
+        return minAge;
+    }
 
     @Override
     public String toString () {

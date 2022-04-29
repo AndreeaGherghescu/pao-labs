@@ -7,44 +7,44 @@ import com.company.product.Novel;
 import java.util.*;
 
 public class NovelLibrary extends Library{
-    private List<Novel> novels;
+    private List<Integer> novels;
 
     public NovelLibrary(){
-        this.novels = new ArrayList<Novel>();
+        this.novels = new ArrayList<Integer>();
     }
 
-    public NovelLibrary(String name, double rating, HashMap<String, Integer> stock, List<Novel> novels) {
+    public NovelLibrary(String name, double rating, HashMap<Integer, Integer> stock, List<Integer> novels) {
         super(name, rating, stock);
         this.novels = novels;
     }
 
     @Override
     public String toString(){
-        String output = "~~ Novel library ~~\n" + "Name: " + this.name + "\nRating: " + this.rating + "\nList of novels:\n";
+        StringBuilder output = new StringBuilder("~~ Novel library ~~\n" + "Name: " + this.name + "\nRating: " + this.rating + "\nList of novels:\n");
 
-        for (Novel it : novels) {
-            output += it + "Stock: " + this.stock.get(it.getTitle()) + "\n";
+        for (Integer it : novels) {
+            output.append(bookService.getBookById(it)).append("Stock: ").append(this.stock.get(it)).append("\n");
         }
 
-        return output;
+        return output.toString();
     }
 
     @Override
-    public List<Offer> getOffers(){
+    public List<Integer> getOffers(){
         return null;
     }
 
     @Override
-    public List<Book> getBooks(){
-        List<Book> b = new ArrayList<Book>();
+    public List<Integer> getBooks(){
+        List<Integer> b = new ArrayList<Integer>();
 
-        for (Novel it: novels){
+        for (Integer it: novels){
             b.add(it);
         }
         return b;
     }
 
-    public void setNovels(List<Novel> novels) {
+    public void setNovels(List<Integer> novels) {
         this.novels = novels;
     }
 
@@ -63,7 +63,7 @@ public class NovelLibrary extends Library{
         return Objects.hash(novels);
     }
 
-    public List<Novel> getNovels(){
+    public List<Integer> getNovels(){
         return novels;
     }
 }

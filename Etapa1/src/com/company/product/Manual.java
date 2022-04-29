@@ -8,12 +8,19 @@ public class Manual extends Book{
 
     public Manual() {}
 
-    public Manual(String author, String title, double price, String subject, int grade) {
-        super(author, title, price);
+    public Manual(String title, String author, double price, String subject, int grade) {
+        super(title, author, price);
         this.subject = subject;
         this.grade = grade;
     }
 
+    public String getSubject() {
+        return subject;
+    }
+
+    public int getGrade() {
+        return grade;
+    }
 
     @Override
     public String toString () {

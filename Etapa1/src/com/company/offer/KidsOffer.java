@@ -2,28 +2,30 @@ package com.company.offer;
 
 import com.company.product.ChildBook;
 import com.company.product.Manual;
+import com.company.service.BookService;
 
 import java.util.List;
 import java.util.Scanner;
 
 public class KidsOffer extends Offer {
-    private ChildBook book;
+    private Integer book;
+
     private String toy; // gratis
 
     public KidsOffer() {}
 
-    public KidsOffer(String name, List<Manual> manuals, ChildBook book, String toy) {
+    public KidsOffer(String name, List<Integer> manuals, Integer book, String toy) {
         super(name, manuals);
         this.book = book;
         this.toy = toy;
 
         // calculez pretul
         double totalPrice = 0;
-        for (Manual it: manuals){
-            totalPrice += it.getPrice();
+        for (Integer it: manuals){
+            totalPrice += bookService.getPriceById(it);
         }
 
-        totalPrice += book.getPrice();
+        totalPrice += bookService.getPriceById(book);
         this.price = totalPrice;
     }
 
@@ -31,21 +33,21 @@ public class KidsOffer extends Offer {
         return toy;
     }
 
-    public ChildBook getChildBook() {
+    public Integer getChildBook() {
         return book;
     }
 
     @Override
     public String toString(){
-        String output =  "~~ Kid's offer ~~\nName: " + this.getName() + "\nBook:\n" + this.book + "\nToy: " + this.toy
-                + "\nManuals options:\n";
+        StringBuilder output = new StringBuilder("~~ Kid's offer ~~\nName: " + this.getName() + "\nBook:\n" + bookService.getBookById(this.book) + "\nToy: " + this.toy
+                + "\nManuals options:\n");
 
-        for (Manual it : manuals) {
-            output += it;
+        for (Integer it : manuals) {
+            output.append(bookService.getBookById(it));
         }
 
-        output += "Price: " + this.price + "\n";
-        return output;
+        output.append("Price: ").append(this.price).append("\n");
+        return output.toString();
     }
 
 }

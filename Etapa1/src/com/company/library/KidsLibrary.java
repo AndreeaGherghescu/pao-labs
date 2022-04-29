@@ -1,24 +1,18 @@
 package com.company.library;
 
-import com.company.offer.KidsOffer;
-import com.company.offer.Offer;
-import com.company.product.Book;
-import com.company.product.ChildBook;
-import com.company.product.Manual;
-
 import java.util.*;
 
 public class KidsLibrary extends Library{
-    private List<KidsOffer> offers;
-    private List<ChildBook> books;
+    private List<Integer> offers;
+    private List<Integer> books;
 
 
     public KidsLibrary() {
-        this.offers = new ArrayList<KidsOffer>();
-        this.books = new ArrayList<ChildBook>();
+        this.offers = new ArrayList<Integer>();
+        this.books = new ArrayList<Integer>();
     }
 
-    public KidsLibrary(String name, double rating, HashMap<String, Integer> stock, List<KidsOffer> offers, List<ChildBook> books){
+    public KidsLibrary(String name, double rating, HashMap<Integer, Integer> stock, List<Integer> offers, List<Integer> books){
         super(name, rating, stock);
         this.books = books;
         this.offers = offers;
@@ -26,45 +20,45 @@ public class KidsLibrary extends Library{
 
     @Override
     public String toString(){
-        String output = "~~ Kid's library ~~\n" + "Name: " + this.name + "\nRating: " + this.rating + "\nList of books:\n";
+        StringBuilder output = new StringBuilder("~~ Kid's library ~~\n" + "Name: " + this.name + "\nRating: " + this.rating + "\nList of books:\n");
 
-        for (ChildBook it : books) {
-            output += it + "Stock: " + this.stock.get(it.getTitle()) + "\n";
+        for (Integer it : books) {
+            output.append(bookService.getBookById(it)).append("Stock: ").append(this.stock.get(it)).append("\n");
         }
 
-        output += "List of offers:\n";
-        for (KidsOffer it : offers) {
-            output += it + "Stock: " + this.stock.get(it.getName()) + "\n";
+        output.append("List of offers:\n");
+        for (Integer it : offers) {
+            output.append(offerService.getOfferById(it)).append("\n");
         }
-        return output;
+        return output.toString();
     }
 
     @Override
-    public List<Book> getBooks(){
-        List<Book> b = new ArrayList<Book>();
-        for (ChildBook it: books){
+    public List<Integer> getBooks(){
+        List<Integer> b = new ArrayList<Integer>();
+        for (Integer it: books){
             b.add(it);
         }
         return b;
     }
 
-    public List<ChildBook> getChildBooks(){
+    public List<Integer> getChildBooks(){
         return books;
     }
 
-    public void setBooks(List<ChildBook> books) {
+    public void setBooks(List<Integer> books) {
         this.books = books;
     }
 
-    public List<Offer> getOffers(){
-        List<Offer> o = new ArrayList<Offer>();
-        for (KidsOffer it: offers){
+    public List<Integer> getOffers(){
+        List<Integer> o = new ArrayList<Integer>();
+        for (Integer it: offers){
             o.add(it);
         }
         return o;
     }
 
-    public void setOffers(List<KidsOffer> offers) {
+    public void setOffers(List<Integer> offers) {
         this.offers = offers;
     }
 

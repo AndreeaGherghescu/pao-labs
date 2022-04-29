@@ -2,72 +2,138 @@ package com.company.service;
 
 import com.company.offer.BigOffer;
 import com.company.offer.KidsOffer;
-import com.company.product.ChildBook;
-import com.company.product.Manual;
-import com.company.product.Novel;
+import com.company.offer.Offer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class OfferService {
     private static OfferService single_instance = null;
     private BookService bookService;
+    private HashMap<Integer, Offer> offers;
+    private int offerId = 0;
 
-    public static OfferService getInstance()
-    {
+    private OfferService() {
+        this.offers = new HashMap<Integer, Offer>();
+    }
+
+    public static OfferService getInstance() {
         if (single_instance == null)
             single_instance = new OfferService();
 
         return single_instance;
     }
 
-    public BigOffer readBigOffer() {
+    public Integer readBigOffer() {
         Scanner var = new Scanner(System.in);
         bookService = BookService.getInstance();
 
         System.out.print("Offer's name: ");
         String name = var.nextLine();
 
-        //System.out.println("-> offer's list of manuals: ");
         System.out.print("How many manuals does the offer have? ");
 
-        int n = var.nextInt();
-        List<Manual> manuals = new ArrayList<Manual>();
-
-        for (int i = 0; i < n; i++) {
-            System.out.println("Introduce manual number " + (i + 1) + ": ");
-            Manual manual = bookService.readManual();
-            manuals.add(manual);
+        int n = 0;
+        while (true) {
+            try {
+                n = var.nextInt();
+                if (n >= 0) {
+                    break;
+                }
+            } catch (Exception e) {
+                var.next();
+                System.out.print("Please insert a valid number: ");
+            }
         }
 
-        //System.out.println("-> offer's list of novels: ");
-        System.out.print("How many novels does the offer have? ");
-
-        n = var.nextInt();
-        List<Novel> novels = new ArrayList<Novel>();
+        System.out.println("List of manuals: ");
+        List<Integer> allManuals = bookService.getManuals();
+        for (int j = 0; j < allManuals.size(); j++) {
+            System.out.println((j + 1) + ". " + bookService.getTitleById(allManuals.get(j)) + ", " + bookService.getAuthorById(allManuals.get(j)));
+        }
+        List<Integer> manuals = new ArrayList<Integer>();
 
         for (int i = 0; i < n; i++) {
-            System.out.println("Introduce novel number " + (i + 1) + ": ");
-            Novel novel = bookService.readNovel();
-            novels.add(novel);
+            System.out.print("Introduce the id of the manual you want to add: ");
+            while (true) {
+                try {
+                    int alege = var.nextInt() - 1;
+                    int id = allManuals.get(alege);
+                    if (allManuals.contains(id) && !manuals.contains(id)) {
+                        manuals.add(id);
+                        break;
+                    } else if (manuals.contains(id)) {
+                        System.out.println("The manual is already in the library");
+                    } else if (!allManuals.contains(id)) {
+                        throw new ArithmeticException("ID not in list");
+                    }
+                } catch (InputMismatchException e) {
+                    var.next();
+                    System.out.print("Please insert a number: ");
+                } catch (Exception e) {
+                    System.out.print("The book you want to add is not a manual. Please try again: ");
+                }
+            }
+        }
+
+        System.out.print("How many novels does the offer have? ");
+
+        while (true) {
+            try {
+                n = var.nextInt();
+                if (n >= 0) {
+                    break;
+                }
+            } catch (Exception e) {
+                var.next();
+                System.out.print("Please insert a valid number: ");
+            }
+        }
+        List<Integer> novels = new ArrayList<Integer>();
+        System.out.println("List of novels: ");
+        List<Integer> allNovels = bookService.getNovels();
+        for (int j = 0; j < allNovels.size(); j++) {
+            System.out.println((j + 1) + ". " + bookService.getTitleById(allNovels.get(j)) + ", " + bookService.getAuthorById(allNovels.get(j)));
+        }
+
+        for (int i = 0; i < n; i++) {
+            System.out.print("Introduce the id of the novel you want to add: ");
+
+            while (true) {
+                try {
+                    int id = var.nextInt();
+                    if (allNovels.contains(id) && !novels.contains(id)) {
+                        novels.add(id);
+                        break;
+                    } else if (novels.contains(id)) {
+                        System.out.println("The novel is already in the library");
+                    } else if (!allNovels.contains(id)) {
+                        throw new ArithmeticException("ID not in list");
+                    }
+                } catch (InputMismatchException e) {
+                    var.next();
+                    System.out.print("Please insert a number: ");
+                } catch (Exception e) {
+                    System.out.print("The book you want to add is not a novel. Please try again: ");
+                }
+            }
         }
 
         double totalPrice = 0;
-        for (Manual man: manuals) {
-            totalPrice += man.getPrice();
+        for (Integer man: manuals) {
+            totalPrice += bookService.getPriceById(man);
         }
-        for (Novel nov: novels) {
-            totalPrice += nov.getPrice();
+        for (Integer nov: novels) {
+            totalPrice += bookService.getPriceById(nov);
         }
 
         BigOffer offer = new BigOffer(name, manuals, novels);
+        offers.put(offerId++, offer);
         offer.setPrice(totalPrice);
 
-        return offer;
+        return offerId - 1;
     }
 
-    public KidsOffer readKidsOffer() {
+    public Integer readKidsOffer() {
         Scanner var = new Scanner(System.in);
         bookService = BookService.getInstance();
 
@@ -80,38 +146,97 @@ public class OfferService {
         while(true) {
             toy = var.nextLine();
             if (!(toy.equalsIgnoreCase("puppet") || toy.equalsIgnoreCase("car") || toy.equalsIgnoreCase("ball"))) {
-                System.out.println("This toy doesn't exist. Please try again: ");
+                System.out.print("This toy doesn't exist. Please try again: ");
             } else {
                 break;
             }
         }
 
-        //System.out.println("-> offer's list of manuals: ");
         System.out.print("How many manuals does the offer have? ");
 
-        int n = var.nextInt();
-        List<Manual> manuals = new ArrayList<Manual>();
+        int n = 0;
+        while (true) {
+            try {
+                n = var.nextInt();
+                if (n >= 0) {
+                    break;
+                }
+            } catch (Exception e) {
+                var.next();
+                System.out.print("Please insert a valid number: ");
+            }
+        }
+
+        System.out.println("List of manuals: ");
+        List<Integer> allManuals = bookService.getManuals();
+        for (int j = 0; j < allManuals.size(); j++) {
+            System.out.println((j + 1) + ". " + bookService.getTitleById(allManuals.get(j)) + ", " + bookService.getAuthorById(allManuals.get(j)));
+        }
+        List<Integer> manuals = new ArrayList<Integer>();
 
         for (int i = 0; i < n; i++) {
-            System.out.println("Introduce manual number " + (i + 1) + ": ");
-            Manual manual = bookService.readManual();
-            manuals.add(manual);
+            System.out.print("Introduce the id of the manual you want to add: ");
+//            Manual manual = bookService.readManual();
+//            manuals.add(manual);
+            while (true) {
+                try {
+                    int alege = var.nextInt() - 1;
+                    int id = allManuals.get(alege);
+                    if (allManuals.contains(id) && !manuals.contains(id)) {
+                        manuals.add(id);
+                        break;
+                    } else if (manuals.contains(id)) {
+                        System.out.println("The manual is already in the library");
+                    } else if (!allManuals.contains(id)) {
+                        throw new ArithmeticException("ID not in list");
+                    }
+                } catch (InputMismatchException e) {
+                    var.next();
+                    System.out.print("Please insert a number: ");
+                } catch (Exception e) {
+                    System.out.print("The book you want to add is not a manual. Please try again: ");
+                }
+            }
         }
 
-        System.out.println("Book: ");
-        ChildBook book = bookService.readChildBook();
+        System.out.println("List of child books: ");
+        List<Integer> allChild = bookService.getChildBooks();
+        for (int j = 0; j < allChild.size(); j++) {
+            System.out.println((j + 1) + ". " + bookService.getTitleById(allChild.get(j)) + ", " + bookService.getAuthorById(allChild.get(j)));
+        }
+        System.out.print("Introduce the id of the child book you want to add: ");
+
+        int id;
+        while (true) {
+            try {
+                int alege = var.nextInt() - 1;
+                id = allChild.get(alege);
+                if (allChild.contains(id)) {
+                    break;
+                } else {
+                    throw new IndexOutOfBoundsException("ID not in list.");
+                }
+            } catch (InputMismatchException e) {
+                var.next();
+                System.out.print("Please insert a number: ");
+            } catch(Exception e) {
+                System.out.print("The book you wanted to add is not a child book. Please try again: ");
+            }
+        }
 
         double totalPrice = 0;
-        for (Manual man: manuals) {
-            totalPrice += man.getPrice();
+        for (Integer man: manuals) {
+            totalPrice += bookService.getPriceById(man);
         }
 
-        totalPrice += book.getPrice();
+        totalPrice += bookService.getPriceById(id);
 
-        KidsOffer offer = new KidsOffer(name, manuals, book, toy);
+        KidsOffer offer = new KidsOffer(name, manuals, id, toy);
+
+        offers.put(offerId++, (Offer) offer);
         offer.setPrice(totalPrice);
 
-        return offer;
+        return offerId - 1;
 
     }
 
@@ -122,29 +247,61 @@ public class OfferService {
         System.out.println("List of novels to choose from: ");
 
         int cnt = 1;
-        for (Novel it: choice.getNovels()){
+        for (Integer it: choice.getNovels()){
             System.out.println("Novel number " + cnt + ":");
             cnt ++;
-            System.out.println(it);
+            System.out.println(bookService.getBookById(it));
         }
         System.out.print("Choose a novel number: ");
-        int option = var.nextInt() - 1;
-        List<Novel> n = new ArrayList<Novel>();
-        n.add(choice.getNovels().get(option));
+
+        List<Integer> n = new ArrayList<Integer>();
+        while (true) {
+            try {
+                int option = var.nextInt() - 1;
+                if (option >= 0 && option <= choice.getNovels().size()) {
+                    n.add(option);
+                    break;
+                }
+                else {
+                    throw new IndexOutOfBoundsException("ID not in list.");
+                }
+            } catch (InputMismatchException e) {
+                var.next();
+                System.out.print("Please insert a number: ");
+            } catch (Exception e) {
+                System.out.print("This id is not in list. Please try again: ");
+            }
+        }
 
         System.out.println("List of manuals to choose from: ");
 
         cnt = 1;
-        for (Manual it: choice.getManuals()){
+        for (Integer it: choice.getManuals()){
             System.out.println("Manual number " + cnt + ":");
             cnt ++;
-            System.out.println(it);
+            System.out.println(bookService.getBookById(it));
         }
         System.out.print("Choose a manual number: ");
-        option = var.nextInt() - 1;
-        var.nextLine();
-        List<Manual> m = new ArrayList<Manual>();
-        m.add(choice.getManuals().get(option));
+
+        List<Integer> m = new ArrayList<Integer>();
+        while (true) {
+            try {
+                int option = var.nextInt() - 1;
+                var.nextLine();
+
+                if (option >= 0 && option <= choice.getManuals().size()) {
+                    m.add(option);
+                    break;
+                } else {
+                    throw new IndexOutOfBoundsException("ID not in list.");
+                }
+            } catch (InputMismatchException e) {
+                var.next();
+                System.out.print("Please insert a number: ");
+            } catch (Exception e) {
+                System.out.print("This id is not in list. Please try again: ");
+            }
+        }
 
         return new BigOffer(choice.getName(), m, n);
     }
@@ -155,17 +312,105 @@ public class OfferService {
         System.out.println("List of manuals to choose from: ");
 
         int cnt = 1;
-        for (Manual it: choice.getManuals()){
+        for (Integer it: choice.getManuals()){
             System.out.println("Manual number " + cnt + ":");
             cnt ++;
-            System.out.println(it);
+            System.out.println(bookService.getBookById(it));
         }
-        System.out.println("Choose a manual number: ");
-        int option = var.nextInt() - 1;
-        var.nextLine();
-        List<Manual> m = new ArrayList<Manual>();
-        m.add(choice.getManuals().get(option));
+        System.out.print("Choose a manual number: ");
+        List<Integer> m = new ArrayList<Integer>();
+        while (true) {
+            try {
+                int option = var.nextInt() - 1;
+                var.nextLine();
+
+                if (option >= 0 && option <= choice.getManuals().size()) {
+                    m.add(option);
+                    break;
+                } else {
+                    throw new IndexOutOfBoundsException("ID not in list.");
+                }
+            } catch (InputMismatchException e) {
+                var.next();
+                System.out.print("Please insert a number: ");
+            } catch (Exception e) {
+                System.out.print("This id is not in list. Please try again: ");
+            }
+        }
 
         return new KidsOffer(choice.getName(), m, choice.getChildBook(), choice.getToy());
     }
+
+    public HashMap<Integer, Offer> getOffers() {
+        return offers;
+    }
+
+    public List<Integer> getKidsOffers () {
+        List <Integer> kids = new ArrayList<Integer>();
+        Set set = offers.entrySet();
+
+        for (Object o: set) {
+            Map.Entry entry = (Map.Entry) o;
+            if (entry.getValue() instanceof KidsOffer) {
+                kids.add((Integer) entry.getKey());
+            }
+        }
+
+        return kids;
+    }
+
+    public List<Integer> getBigOffers () {
+        List <Integer> bigs = new ArrayList<Integer>();
+        Set set = offers.entrySet();
+
+        for (Object o: set) {
+            Map.Entry entry = (Map.Entry) o;
+            if (entry.getValue() instanceof BigOffer) {
+                bigs.add((Integer) entry.getKey());
+            }
+        }
+
+        return bigs;
+    }
+
+    public String getNameById (int id) {
+        Set set = offers.entrySet();
+
+        for (Object o: set) {
+            Map.Entry entry = (Map.Entry) o;
+            if ((Integer) entry.getKey() == id) {
+                return ((Offer) entry.getValue()).getName();
+            }
+        }
+
+        return null;
+    }
+
+    public double getPriceById(int id) {
+        Set set = offers.entrySet();
+
+        for (Object o : set) {
+            Map.Entry entry = (Map.Entry) o;
+            if ((Integer) entry.getKey() == id) {
+                return ((Offer)entry.getValue()).getPrice();
+            }
+        }
+
+        return 0;
+    }
+
+    public Offer getOfferById(int id) {
+        Set set = offers.entrySet();
+
+        for (Object o : set) {
+            Map.Entry entry = (Map.Entry) o;
+            if ((Integer) entry.getKey() == id) {
+                return ((Offer)entry.getValue());
+            }
+        }
+
+        return null;
+    }
+
+
 }

@@ -15,6 +15,8 @@ import com.company.product.Novel;
 import com.company.user.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Service { // singleton
     private static Service single_instance = null;
@@ -26,10 +28,13 @@ public class Service { // singleton
     private int orderId;
     private OfferService offerService;
     private BookService bookService;
+    private AuditService audit;
 
     private Service(){
         this.shops = new HashMap<Integer, Library>();
         this.orders = new HashMap<Integer, Order>();
+
+        this.audit = AuditService.getInstance();
     }
 
     public static synchronized Service getInstance() {
@@ -44,16 +49,35 @@ public class Service { // singleton
 
     public int singIn(){
         login = Login.getInstance();
+        bookService = BookService.getInstance();
+
+        login.setUsersReg(new ReaderCSV<User>().getUsersReg());
+        bookService.readBooks();
 
         Scanner var = new Scanner(System.in);
 
         int type = 0;
         while (true) {
             System.out.print("Type 1 for sign in or 2 for sign up: ");
-            int option = var.nextInt();
+
+            int option = 0;
+
+            boolean flag = true;
+            while (flag) {
+                try {
+                    flag = false;
+                    option = var.nextInt();
+                } catch (InputMismatchException e) {
+                    flag = true;
+                    var.next();
+                    System.out.print("Please insert a number: ");
+                }
+            }
+
             var.nextLine();
 
             if (option == 1){
+
                 // sign in
                 System.out.print("Email: ");
                 String email = var.nextLine();
@@ -66,6 +90,7 @@ public class Service { // singleton
                     if (email.equals("admin@gmail.com")) {
                         type = 1;
                     }
+                    audit.WriteTimestamp("Sign in as " + email);
                     break;
                 } else {
                     System.out.println("Couldn't log in, password or email incorrect. Please try again");
@@ -73,7 +98,6 @@ public class Service { // singleton
             } else if (option == 2) {
                 // sign up
 
-                // 1
                 System.out.print("Name: ");
                 String name = var.nextLine();
                 System.out.print("Email: ");
@@ -87,15 +111,16 @@ public class Service { // singleton
                     if (ok)
                         break;
                     else
-                        System.out.println("Please give a valid phone number.");
+                        System.out.print("Please give a valid phone number: ");
                 }
                 System.out.print("Password: ");
                 String password = var.nextLine();
 
                 User customer = new User(name, email, phoneNumber, password);
 
-                // 2
                 if(login.signUp(customer)) {
+                    new WriterCSV<User>().writeUser(customer);
+                    audit.WriteTimestamp("Sign up as " + email);
                     System.out.println("You have registered successfully!\n");
                     currentUser = customer;
                 } else {
@@ -110,11 +135,13 @@ public class Service { // singleton
     }
 
     public void signOut(){
+        audit.WriteTimestamp("Sign out");
         login.setCurentUser(null);
         System.out.println("Hope to see you back soon!\n");
     }
 
     public void listLibrary() {
+        audit.WriteTimestamp("List one library");
         Scanner var = new Scanner(System.in);
 
         System.out.print("What library do you want to list? Please introduce the name: ");
@@ -138,16 +165,22 @@ public class Service { // singleton
     }
 
     public void listLibraries(){
+        audit.WriteTimestamp("List libraries");
         System.out.println("Libraries:");
-        Set set = shops.entrySet();
-        for (Object o : set) {
-            Map.Entry entry = (Map.Entry) o;
-            System.out.println(((Library) entry.getValue()));
-            System.out.println();
-        }
+//        Set set = shops.entrySet();
+//        for (Object o : set) {
+//            Map.Entry entry = (Map.Entry) o;
+//            System.out.println(((Library) entry.getValue()));
+//            System.out.println();
+//        }
+
+        // stream si lambda
+        shops.entrySet().stream().forEach(e -> System.out.println(((Map.Entry)e).getValue()));
+
     }
 
     public void addLibrary() {
+        audit.WriteTimestamp("Add a library");
         Scanner var = new Scanner(System.in);
         bookService = BookService.getInstance();
         offerService = OfferService.getInstance();
@@ -161,121 +194,321 @@ public class Service { // singleton
 
         while (true) {
             System.out.print("Please insert the number of your option: ");
-            int option = var.nextInt();
-            var.nextLine();
 
-            HashMap<String, Integer> stock = new HashMap<String, Integer>();
+            int option;
+            while (true) {
+                try {
+                    option = var.nextInt();
+                    var.nextLine();
+                    if (option == 1 || option == 2 || option == 3) {
+                        break;
+                    }
+                } catch (InputMismatchException e) {
+                    var.next();
+                    System.out.print("Please insert a number: ");
+                }
+            }
+
+            HashMap<Integer, Integer> stock = new HashMap<Integer, Integer>();
 
             System.out.print("Library's name: ");
             String name = var.nextLine();
 
-            if (option == 1) {
+            if (option == 1) { // novel library
 
                 // name, rating, stock, novels
-                List<Novel> novels = new ArrayList<Novel>();
+                List<Integer> novels = new ArrayList<Integer>();
                 System.out.print("How many novels does the library have? ");
-                int n = var.nextInt();
+                int n;
+                while (true) {
+                    try {
+                        n = var.nextInt();
+                        break;
+                    } catch (InputMismatchException e) {
+                        var.next();
+                        System.out.print("Please insert a number: ");
+                    }
+                }
 
+                System.out.println("List of novels: ");
+                List<Integer> allNovels = bookService.getNovels();
+                for (int j = 0; j < allNovels.size(); j++) {
+                    System.out.println((j + 1) + ". " + bookService.getTitleById(allNovels.get(j)) + ", " + bookService.getAuthorById(allNovels.get(j)));
+                }
                 for (int i = 0; i < n; i++) {
-                    Novel novel = bookService.readNovel();
-                    novels.add(novel);
+//                    Novel novel = bookService.readNovel();
+//                    novels.add(novel);
 
-                    System.out.print("Introduce the stock of <<" + novel.getTitle() + ">> : ");
-                    int quantity = var.nextInt();
-                    stock.put(novel.getTitle(), quantity);
+                    System.out.print("Please choose the id of the novel you want to add: ");
+                    while (true) {
+                        try {
+                            int alege = var.nextInt() - 1;
+                            int id = allNovels.get(alege);
+                            if (allNovels.contains(id) && !novels.contains(id)) {
+                                novels.add(id);
+                                System.out.print("Introduce the stock of <<" + bookService.getTitleById(id) + ">> : ");
+                                int quantity = var.nextInt();
+                                stock.put(id, quantity);
+                                break;
+                            } else if (novels.contains(id)) {
+                                System.out.println("The novel is already in the library");
+                            } else if (!allNovels.contains(id)) {
+                                throw new ArithmeticException("ID not in list");
+                            }
+                        } catch (InputMismatchException e) {
+                            var.next();
+                            System.out.print("Please insert a number: ");
+                        } catch (Exception e) {
+                            System.out.print("The book you want to add is not a novel. Please try again: ");
+                        }
+                    }
+
                 }
 
                 library = new NovelLibrary(name, 0, stock, novels);
                 break;
-            } else if (option == 2) {
+            } else if (option == 2) { // kid s library
 
                 // name, rating, stock, offers, books
 
-                List<ChildBook> books = new ArrayList<ChildBook>();
-                List<KidsOffer> offers = new ArrayList<KidsOffer>();
+                List<Integer> childBooks = new ArrayList<Integer>();
+                List<Integer> offers = new ArrayList<Integer>();
 
-                //System.out.println("-> Kids Library's list of kids books: ");
-                System.out.print("How many books do you want: ");
-                int n = var.nextInt();
-
-                for (int i = 0; i < n; i++) {
-                    ChildBook book = bookService.readChildBook();
-                    books.add(book);
-
-                    System.out.print("Introduce the stock of <<" + book.getTitle() + ">> : ");
-                    int quantity = var.nextInt();
-                    stock.put(book.getTitle(), quantity);
+                System.out.print("How many books does the library have? ");
+                int n;
+                while (true) {
+                    try {
+                        n = var.nextInt();
+                        break;
+                    } catch (InputMismatchException e) {
+                        var.next();
+                        System.out.print("Please insert a number: ");
+                    }
                 }
 
-                //System.out.println("->Kids library's list of offers: ");
-                System.out.print("How many offers: ");
-                n = var.nextInt();
+                System.out.println("List of books: ");
+                List<Integer> allChild = bookService.getChildBooks();
+                for (int j = 0; j < allChild.size(); j++) {
+                    System.out.println((j + 1) + ". " + bookService.getTitleById(allChild.get(j)) + ", " + bookService.getAuthorById(allChild.get(j)));
+                }
+                for (int i = 0; i < n; i++) {
+//                  ChildBook book = bookService.readChildBook();
+//                  books.add(book);
 
+                    System.out.print("Please choose the id of the book you want to add: ");
+                    while (true) {
+                        try {
+                            int alege = var.nextInt() - 1;
+                            int id = allChild.get(alege);
+                            if (allChild.contains(id) && !childBooks.contains(id)) {
+                                childBooks.add(id);
+                                System.out.print("Introduce the stock of <<" + bookService.getTitleById(id) + ">> : ");
+                                int quantity = var.nextInt();
+                                stock.put(id, quantity);
+                                break;
+                            } else if (childBooks.contains(id)) {
+                                System.out.println("The book is already in the library");
+                            } else if (!allChild.contains(id)) {
+                                throw new ArithmeticException("ID not in list");
+                            }
+                        } catch (InputMismatchException e) {
+                            var.next();
+                            System.out.print("Please insert a number: ");
+                        } catch (Exception e) {
+                            System.out.print("The book you want to add is not a child book. Please try again: ");
+                        }
+                    }
 
+                }
+
+                System.out.print("How many offers does the library have? ");
+                while (true) {
+                    try {
+                        n = var.nextInt();
+                        break;
+                    } catch (InputMismatchException e) {
+                        var.next();
+                        System.out.print("Please insert a number: ");
+                    }
+                }
 
                 for (int i = 0; i < n; i++) {
-                    KidsOffer offer = offerService.readKidsOffer();
-
+                    Integer offer = offerService.readKidsOffer();
                     offers.add(offer);
 
-                    System.out.print("Introduce the stock of <<" + offer.getName() + ">> : ");
-                    int quantity = var.nextInt();
-                    stock.put(offer.getName(), quantity);
+                    // 1
+//                    System.out.print("Please choose the id of the offer you want to add: ");
+//                    while (true) {
+//                        try {
+//                            int id = var.nextInt();
+//                            List<Integer> allOffers = offerService.getKidsOffers();
+//                            if (allOffers.contains(id) && !offers.contains(id)) {
+//                                offers.add(id);
+//                                break;
+////                            System.out.print("Introduce the stock of <<" + offerService.getNameById(id) + ">> : ");
+////                            int quantity = var.nextInt();
+////                            stock.put(id, quantity);
+//                            } else if (offers.contains(id)) {
+//                                System.out.println("The offer is already in the library");
+//                            } else if (!allOffers.contains(id)) {
+//                                throw new ArithmeticException("ID not in list");
+//                            }
+//                        } catch (InputMismatchException e) {
+//                            var.next();
+//                            System.out.print("Please insert a number: ");
+//                        } catch (Exception e) {
+//                            System.out.print("The offer you want to add is not a child offer. Please try again: ");
+//                        }
+//                    }
+                    // 2
+
                 }
 
-                library = new KidsLibrary(name, 0, stock, offers, books);
+                library = new KidsLibrary(name, 0, stock, offers, childBooks);
                 break;
-            } else if (option == 3) {
+            } else if (option == 3) { //big library
 
                 // reading big library
                 // name, rating, stock, novels, offers, manuals
 
-                List<Novel> novels = new ArrayList<Novel>();
-                List<Manual> manuals = new ArrayList<Manual>();
-                List<BigOffer> offers = new ArrayList<BigOffer>();
+                List<Integer> novels = new ArrayList<Integer>();
+                List<Integer> manuals = new ArrayList<Integer>();
+                List<Integer> offers = new ArrayList<Integer>();
 
-                //System.out.println("Library's list of novels: ");
                 System.out.print("How many novels does the library have? ");
-                int n = var.nextInt();
-
-                for (int i = 0; i < n; i++) {
-                    Novel novel = bookService.readNovel();
-                    novels.add(novel);
-
-                    System.out.print("Introduce the stock of <<" + novel.getTitle() + ">> : ");
-                    int quantity = var.nextInt();
-                    stock.put(novel.getTitle(), quantity);
+                int n;
+                while (true) {
+                    try {
+                        n = var.nextInt();
+                        break;
+                    } catch (InputMismatchException e) {
+                        var.next();
+                        System.out.print("Please insert a number: ");
+                    }
                 }
 
-                //System.out.println("-> Library's list of offers: ");
+                System.out.println("List of novels: ");
+                List<Integer> allNovels = bookService.getNovels();
+                for (int j = 0; j < allNovels.size(); j++) {
+                    System.out.println((j + 1) + ". " + bookService.getTitleById(allNovels.get(j)) + ", " + bookService.getAuthorById(allNovels.get(j)));
+                }
+                for (int i = 0; i < n; i++) {
+//                    Novel novel = bookService.readNovel();
+//                    novels.add(novel);
+                    System.out.print("Please choose the id of the novel you want to add: ");
+                    while (true) {
+                        try {
+                            int alege = var.nextInt() - 1;
+                            int id = allNovels.get(alege);
+                            if (allNovels.contains(id) && !novels.contains(id)) {
+                                novels.add(id);
+                                System.out.print("Introduce the stock of <<" + bookService.getTitleById(id) + ">> : ");
+                                int quantity = var.nextInt();
+                                stock.put(id, quantity);
+                                break;
+                            } else if (novels.contains(id)) {
+                                System.out.println("The novel is already in the library");
+                            } else if (!allNovels.contains(id)) {
+                                throw new ArithmeticException("ID not in list");
+                            }
+                        } catch (InputMismatchException e) {
+                            var.next();
+                            System.out.print("Please insert a number: ");
+                        } catch (Exception e) {
+                            System.out.print("The book you want to add is not a novel. Please try again: " );
+                        }
+                    }
+
+                }
+
                 System.out.print("How many offers does the library have? ");
-                n = var.nextInt();
-
-                for (int i = 0; i < n; i++) {
-                    BigOffer offer = offerService.readBigOffer();
-
-                    offers.add(offer);
-
-                    System.out.print("Introduce the stock of <<" + offer.getName() + ">> : ");
-                    int quantity = var.nextInt();
-                    stock.put(offer.getName(), quantity);
+                while (true) {
+                    try {
+                        n = var.nextInt();
+                        break;
+                    } catch (InputMismatchException e) {
+                        var.next();
+                        System.out.print("Please insert a number: ");
+                    }
                 }
 
-                //System.out.println("->Library's list of manuals: ");
-                System.out.print("How many manuals does the library have? ");
-                n = var.nextInt();
-                for (int i = 0; i < n; i++){
-                    Manual manual = bookService.readManual();
-                    manuals.add(manual);
+                for (int i = 0; i < n; i++) {
 
-                    System.out.print("Introduce the stock of <<" + manual.getTitle() + ">> : ");
-                    int quantity = var.nextInt();
-                    stock.put(manual.getTitle(), quantity);
+                    Integer offer = offerService.readBigOffer();
+                    offers.add(offer);
+                    // 1
+//                    System.out.print("Please choose the id of the offer you want to add: ");
+//                    while (true) {
+//                        try {
+//                            int id = var.nextInt();
+//                            List<Integer> allOffers = offerService.getBigOffers();
+//                            if (allOffers.contains(id) && !offers.contains(id)) {
+//                                offers.add(id);
+//                                break;
+////                            System.out.print("Introduce the stock of <<" + offerService.getNameById(id) + ">> : ");
+////                            int quantity = var.nextInt();
+////                            stock.put(id, quantity);
+//                            } else if (novels.contains(id)) {
+//                                System.out.println("The novel is already in the library");
+//                            } else if (!allOffers.contains(id)) {
+//                                throw new ArithmeticException("ID not in list");
+//                            }
+//                        } catch (InputMismatchException e) {
+//                            var.next();
+//                            System.out.print("Please insert a number: ");
+//                        } catch (Exception e) {
+//                            System.out.print("The book you want to add is not a novel. Please try again: ");
+//                        }
+//                    }
+
+                }
+
+                System.out.print("How many manuals does the library have? ");
+                while (true) {
+                    try {
+                        n = var.nextInt();
+                        break;
+                    } catch (InputMismatchException e) {
+                        var.next();
+                        System.out.print("Please insert a number: ");
+                    }
+                }
+
+                System.out.println("List of manuals: ");
+                List<Integer> allManuals= bookService.getManuals();
+                for (int j = 0; j < allManuals.size(); j++) {
+                    System.out.println((j + 1) + ". " + bookService.getTitleById(allManuals.get(j)) + ", " + bookService.getAuthorById(allManuals.get(j)));
+                }
+                for (int i = 0; i < n; i++){
+
+                    System.out.print("Please choose the id of the manual you want to add: ");
+                    while (true) {
+                        try {
+                            int alege = var.nextInt() - 1;
+                            int id = allManuals.get(alege);
+                            if (allManuals.contains(id) && !manuals.contains(id)) {
+                                manuals.add(id);
+                                System.out.print("Introduce the stock of <<" + bookService.getTitleById(id) + ">> : ");
+                                int quantity = var.nextInt();
+                                stock.put(id, quantity);
+                                break;
+                            } else if (manuals.contains(id)) {
+                                System.out.println("The manual is already in the library");
+                            } else if (!allManuals.contains(id)) {
+                                throw new ArithmeticException("ID not in list");
+                            }
+                        } catch (InputMismatchException e) {
+                            var.next();
+                            System.out.print("Please insert a number: ");
+                        } catch (Exception e) {
+                            System.out.print("The book you want to add is not a child book. Please try again:");
+                        }
+                    }
+
                 }
 
                 library = new BigLibrary(name, 0, stock, novels, offers, manuals);
 
-                // stop
                 break;
             } else {
                 System.out.println("Invalid option. Please try again.");
@@ -289,7 +522,13 @@ public class Service { // singleton
     }
 
     public void removeLibrary() {
+        audit.WriteTimestamp("Remove library");
         Scanner var = new Scanner(System.in);
+
+        if (shops.isEmpty()) {
+            System.out.println("There are no libraries.");
+            return;
+        }
 
         System.out.println("List of libraries:");
 
@@ -323,88 +562,214 @@ public class Service { // singleton
     }
 
     public void addBook() {
+        audit.WriteTimestamp("Add book");
         Scanner var  = new Scanner(System.in);
         bookService = BookService.getInstance();
 
-        Set set = shops.entrySet();
-        boolean flag = false;
+        System.out.println("What type of book do you want to add?");
+        System.out.println("1. Novel");
+        System.out.println("2. Manual");
+        System.out.println("3. Child book");
+        System.out.print("Please insert the number of your option: ");
 
-        while(true) {
-            System.out.print("Add product to library: ");
-            String name = var.nextLine();
-
-            for (Object o : set) {
-                Map.Entry entry = (Map.Entry) o;
-                if (((Library) entry.getValue()).getName().equalsIgnoreCase(name)) {
-
-                    Book book = null;
-                    if (entry.getValue() instanceof BigLibrary){
-                        System.out.println("Big Library");
-
-                        while (true) {
-                            System.out.print("Do you want to add a novel or a manual? (novel/manual): ");
-                            String option = var.nextLine();
-
-                            if (option.equalsIgnoreCase("novel")) {
-                                book = bookService.readNovel();
-
-                                List<Novel> novels = ((BigLibrary) entry.getValue()).getNovels();
-                                novels.add((Novel)book);
-                                ((BigLibrary) entry.getValue()).setNovels(novels);
-                                break;
-                            } else if (option.equalsIgnoreCase("manual")) {
-                                book = bookService.readManual();
-
-                                List<Manual> manuals = ((BigLibrary) entry.getValue()).getManuals();
-                                manuals.add((Manual)book);
-                                ((BigLibrary) entry.getValue()).setManuals(manuals);
-                                break;
-                            } else {
-                                System.out.println("Invalid option. Please try again.");
-                            }
-                        }
-                        System.out.print("Stock of the product: ");
-                        int stock = var.nextInt();
-                        ((BigLibrary)entry.getValue()).updateStock(book.getTitle(), stock);
-
-                    } else if (entry.getValue() instanceof NovelLibrary){
-                        System.out.println("Novel library");
-                        Novel novel = bookService.readNovel();
-
-                        List<Novel> novels = ((NovelLibrary) entry.getValue()).getNovels();
-                        novels.add(novel);
-                        ((NovelLibrary) entry.getValue()).setNovels(novels);
-
-                        System.out.print("Stock of the product: ");
-                        int stock = var.nextInt();
-                        ((NovelLibrary)entry.getValue()).updateStock(novel.getTitle(), stock);
-
-                    } else {
-                        System.out.println("Kids library");
-                        ChildBook childBook = bookService.readChildBook();
-
-                        List<ChildBook> books = ((KidsLibrary) entry.getValue()).getChildBooks();
-                        books.add((ChildBook) book);
-                        ((KidsLibrary) entry.getValue()).setBooks(books);
-
-                        System.out.print("Stock of the product: ");
-                        int stock = var.nextInt();
-                        ((KidsLibrary)entry.getValue()).updateStock(childBook.getTitle(), stock);
-                    }
-                    flag = true;
-                    System.out.println("Book added successfully!\n");
+        int option;
+        while (true) {
+            try {
+                option = var.nextInt();
+                if (option == 1 || option == 2 || option == 3) {
                     break;
                 }
+            } catch (Exception e) {
+                System.out.print("Please insert a valid number: ");
             }
-            if (!flag) {
-                System.out.println("Invalid library name. Please try again.");
-            } else {
+        }
+
+        int book;
+        if (option == 2) { // manual
+            book = bookService.readManual();
+        } else if (option == 3) {
+            book = bookService.readChildBook();
+        } else {
+            book = bookService.readNovel();
+        }
+    }
+
+    public void addBookToLibrary () {
+        audit.WriteTimestamp("Add book to library");
+        Scanner var  = new Scanner(System.in);
+        bookService = BookService.getInstance();
+
+        System.out.print("Insert the name of the library: ");
+        String name = var.nextLine();
+
+        boolean flag = false;
+        Set set = this.shops.entrySet();
+        for (Object o: set) {
+            Map.Entry entry = (Map.Entry) o;
+            if (((Library)entry.getValue()).getName().equalsIgnoreCase(name)) {
+                if (entry.getValue() instanceof BigLibrary) {
+                    BigLibrary library = (BigLibrary) entry.getValue();
+                    System.out.println("Big library");
+                    System.out.print("Do you want to add a manual or a novel? (manual/novel): ");
+
+                    String option;
+                    while (true) {
+                        try {
+                            option = var.nextLine();
+                            if (Objects.equals(option, "manual") || Objects.equals(option, "novel")) {
+                                break;
+                            }
+                        } catch (Exception e) {
+                            System.out.print("Please insert a valid option: ");
+                        }
+                    }
+
+                    if (option.equalsIgnoreCase("manual")) {
+                        System.out.println("List of manuals: ");
+                        List<Integer> allManuals = bookService.getManuals();
+                        for (int i = 0; i < allManuals.size(); i++) {
+                            System.out.println((i + 1) + ". " + bookService.getTitleById(allManuals.get(i)) + ", " + bookService.getAuthorById(allManuals.get(i)));
+                        }
+                        System.out.print("Please insert the number of the book you want to add: ");
+                        while (true) {
+                            try {
+                                int alegere = var.nextInt() - 1;
+                                int id = allManuals.get(alegere);
+                                List<Integer> manuals = library.getManuals();
+                                if (allManuals.contains(id) && !manuals.contains(id)) {
+                                    manuals.add(id);
+                                    library.setManuals(manuals);
+                                    System.out.print("Introduce the stock of <<" + bookService.getTitleById(id) + ">> : ");
+                                    int quantity = var.nextInt();
+                                    library.updateStock(id, quantity);
+                                    break;
+                                } else if (manuals.contains(id)) {
+                                    System.out.println("The manual is already in the library");
+                                } else if (!allManuals.contains(id)) {
+                                    throw new ArithmeticException("ID not in list");
+                                }
+                            } catch (InputMismatchException e) {
+                                var.next();
+                                System.out.print("Please insert a number: ");
+                            } catch (Exception e) {
+                                System.out.print("The book you want to add is not a manual. Please try again: ");
+                            }
+                        }
+
+                    } else {
+                        System.out.println("List of novels: ");
+                        List<Integer> allNovels = bookService.getNovels();
+                        for (int i = 0; i < allNovels.size(); i++) {
+                            System.out.println((i + 1) + ". " + bookService.getTitleById(allNovels.get(i)) + ", " + bookService.getAuthorById(allNovels.get(i)));
+                        }
+                        System.out.print("Please insert the number of the book you want to add: ");
+                        while (true) {
+                            try {
+                                int alegere = var.nextInt() - 1;
+                                int id = allNovels.get(alegere);
+                                List<Integer> novels = library.getNovels();
+                                if (allNovels.contains(id) && !novels.contains(id)) {
+                                    novels.add(id);
+                                    library.setNovels(novels);
+                                    System.out.print("Introduce the stock of <<" + bookService.getTitleById(id) + ">> : ");
+                                    int quantity = var.nextInt();
+                                    library.updateStock(id, quantity);
+                                    break;
+                                } else if (novels.contains(id)) {
+                                    System.out.println("The novel is already in the library");
+                                } else if (!allNovels.contains(id)) {
+                                    throw new ArithmeticException("ID not in list");
+                                }
+                            } catch (InputMismatchException e) {
+                                var.next();
+                                System.out.print("Please insert a number: ");
+                            } catch (Exception e) {
+                                System.out.print("The book you want to add is not a novel. Please try again: ");
+                            }
+                        }
+                    }
+
+
+                } else if (entry.getValue() instanceof NovelLibrary) {
+                    NovelLibrary library = (NovelLibrary) entry.getValue();
+                    System.out.println("Novel library");
+                    System.out.println("List of novels: ");
+                    List<Integer> allNovels = bookService.getNovels();
+                    for (int i = 0; i < allNovels.size(); i++) {
+                        System.out.println((i + 1) + ". " + bookService.getTitleById(allNovels.get(i)) + ", " + bookService.getAuthorById(allNovels.get(i)));
+                    }
+                    System.out.print("Please insert the number of the book you want to add: ");
+                    while (true) {
+                        try {
+                            int alegere = var.nextInt() - 1;
+                            int id = allNovels.get(alegere);
+                            List<Integer> novels = library.getNovels();
+                            if (allNovels.contains(id) && !novels.contains(id)) {
+                                novels.add(id);
+                                library.setNovels(novels);
+                                System.out.print("Introduce the stock of <<" + bookService.getTitleById(id) + ">> : ");
+                                int quantity = var.nextInt();
+                                library.updateStock(id, quantity);
+                                break;
+                            } else if (novels.contains(id)) {
+                                System.out.println("The novel is already in the library");
+                            } else if (!allNovels.contains(id)) {
+                                throw new ArithmeticException("ID not in list");
+                            }
+                        } catch (InputMismatchException e) {
+                            var.next();
+                            System.out.print("Please insert a number: ");
+                        } catch (Exception e) {
+                            System.out.print("The book you want to add is not a novel. Please try again: ");
+                        }
+                    }
+
+                } else {
+                    KidsLibrary library = (KidsLibrary) entry.getValue();
+                    System.out.println("Kids library");
+                    System.out.println("List of child books: ");
+                    List<Integer> allBooks = bookService.getChildBooks();
+                    for (int i = 0; i < allBooks.size(); i++) {
+                        System.out.println((i + 1) + ". " + bookService.getTitleById(allBooks.get(i)) + ", " + bookService.getAuthorById(allBooks.get(i)));
+                    }
+                    System.out.print("Please insert the number of the book you want to add: ");
+                    while (true) {
+                        try {
+                            int alegere = var.nextInt() - 1;
+                            int id = allBooks.get(alegere);
+                            List<Integer> books = library.getChildBooks();
+                            if (allBooks.contains(id) && !books.contains(id)) {
+                                books.add(id);
+                                library.setBooks(books);
+                                System.out.print("Introduce the stock of <<" + bookService.getTitleById(id) + ">> : ");
+                                int quantity = var.nextInt();
+                                library.updateStock(id, quantity);
+                                break;
+                            } else if (books.contains(id)) {
+                                System.out.println("The book is already in the library");
+                            } else if (!allBooks.contains(id)) {
+                                throw new ArithmeticException("ID not in list");
+                            }
+                        } catch (InputMismatchException e) {
+                            var.next();
+                            System.out.print("Please insert a number: ");
+                        } catch (Exception e) {
+                            System.out.print("The book you want to add is not a novel. Please try again: ");
+                        }
+                    }
+                }
+                flag = true;
+                System.out.println("Book added successfully!\n");
                 break;
             }
+        }
+        if (!flag) {
+            System.out.println("The library doesn't exist.");
         }
     }
 
     public void removeBook(){
+        audit.WriteTimestamp("Remove book");
         Scanner var = new Scanner(System.in);
 
         Set set = shops.entrySet();
@@ -418,21 +783,59 @@ public class Service { // singleton
                 Map.Entry entry = (Map.Entry) o;
                 if (((Library) entry.getValue()).getName().equalsIgnoreCase(name)) {
                     Book book = null;
+
                     if (entry.getValue() instanceof BigLibrary){
                         System.out.println("Big Library");
 
-                        List<Book> books = ((BigLibrary)entry.getValue()).getBooks();
+                        List<Integer> books = ((BigLibrary)entry.getValue()).getBooks();
+
+                        List<Book> allBooks = books.stream().
+                                map(e -> bookService.getBookById(e)).
+                                collect(Collectors.toList());
+
                         boolean flagb = false;
                         while (true) {
                             System.out.print("Introduce the name of the book you want to remove: ");
                             String option = var.nextLine();
 
-                            for (Book it: books) {
-                                if (it.getTitle().equalsIgnoreCase(option)) {
-                                    if (it instanceof Novel){
+//                            for (Book b: allBooks) {
+//                                if (b.getTitle().equalsIgnoreCase(option)) {
+//                                    if (b instanceof Novel){
+//
+//                                        List<Integer> novels = ((BigLibrary)entry.getValue()).getNovels();
+//
+//                                        for (Integer nov: novels){
+//                                            if(nov.equals()){
+//                                                novels.remove(it);
+//                                                break;
+//                                            }
+//                                        }
+//                                        ((BigLibrary)entry.getValue()).setNovels(novels);
+//
+//                                    } else {
+//                                        List<Integer> manuals = ((BigLibrary)entry.getValue()).getManuals();
+//                                        for (Integer man: manuals){
+//                                            if(man.equals(it)){
+//                                                manuals.remove(it);
+//                                                break;
+//                                            }
+//                                        }
+//                                        ((BigLibrary)entry.getValue()).setManuals(manuals);
+//                                    }
+//
+//                                    ((BigLibrary)entry.getValue()).removeFromStock(it);
+//                                    flagb = true;
+//                                    break;
+//                                }
+//                            }
 
-                                        List<Novel> novels = ((BigLibrary)entry.getValue()).getNovels();
-                                        for (Novel nov: novels){
+                            for (Integer it: books) {
+                                if (bookService.getTitleById(it).equalsIgnoreCase(option)) {
+                                    Book carte = bookService.getBookById(it);
+                                    if (carte instanceof Novel){
+
+                                        List<Integer> novels = ((BigLibrary)entry.getValue()).getNovels();
+                                        for (Integer nov: novels){
                                             if(nov.equals(it)){
                                                 novels.remove(it);
                                                 break;
@@ -441,8 +844,8 @@ public class Service { // singleton
                                         ((BigLibrary)entry.getValue()).setNovels(novels);
 
                                     } else {
-                                        List<Manual> manuals = ((BigLibrary)entry.getValue()).getManuals();
-                                        for (Manual man: manuals){
+                                        List<Integer> manuals = ((BigLibrary)entry.getValue()).getManuals();
+                                        for (Integer man: manuals){
                                             if(man.equals(it)){
                                                 manuals.remove(it);
                                                 break;
@@ -451,7 +854,7 @@ public class Service { // singleton
                                         ((BigLibrary)entry.getValue()).setManuals(manuals);
                                     }
 
-                                    ((BigLibrary)entry.getValue()).removeFromStock(it.getTitle());
+                                    ((BigLibrary)entry.getValue()).removeFromStock(it);
                                     flagb = true;
                                     break;
                                 }
@@ -465,16 +868,16 @@ public class Service { // singleton
 
                     } else if (entry.getValue() instanceof NovelLibrary){
                         System.out.println("Novel library");
-                        List<Book> books = ((NovelLibrary)entry.getValue()).getBooks();
+                        List<Integer> books = ((NovelLibrary)entry.getValue()).getBooks();
                         boolean flagb = false;
                         while (true) {
                             System.out.print("Introduce the name of the book you want to remove: ");
                             String option = var.nextLine();
 
-                            for (Book it: books) {
-                                if (it.getTitle().equalsIgnoreCase(option)) {
-                                    List<Novel> novels = ((NovelLibrary)entry.getValue()).getNovels();
-                                    for (Novel nov: novels){
+                            for (Integer it: books) {
+                                if (bookService.getTitleById(it).equalsIgnoreCase(option)) {
+                                    List<Integer> novels = ((NovelLibrary)entry.getValue()).getNovels();
+                                    for (Integer nov: novels){
                                         if(nov.equals(it)){
                                             novels.remove(it);
                                             break;
@@ -482,7 +885,7 @@ public class Service { // singleton
                                     }
                                     ((NovelLibrary)entry.getValue()).setNovels(novels);
 
-                                    ((NovelLibrary)entry.getValue()).removeFromStock(it.getTitle());
+                                    ((NovelLibrary)entry.getValue()).removeFromStock(it);
                                     flagb = true;
                                     break;
                                 }
@@ -496,17 +899,17 @@ public class Service { // singleton
 
                     } else {
                         System.out.println("Kids library");
-                        List<Book> books = ((KidsLibrary)entry.getValue()).getBooks();
+                        List<Integer> books = ((KidsLibrary)entry.getValue()).getBooks();
                         boolean flagb = false;
                         while (true) {
                             System.out.print("Introduce the name of the book you want to remove: ");
                             String option = var.nextLine();
 
-                            for (Book it: books) {
-                                if (it.getTitle().equalsIgnoreCase(option)) {
+                            for (Integer it: books) {
+                                if (bookService.getTitleById(it).equalsIgnoreCase(option)) {
 
-                                    List<ChildBook> cbooks = ((KidsLibrary)entry.getValue()).getChildBooks();
-                                    for (ChildBook cb: cbooks){
+                                    List<Integer> cbooks = ((KidsLibrary)entry.getValue()).getChildBooks();
+                                    for (Integer cb: cbooks){
                                         if(cb.equals(it)){
                                             cbooks.remove(it);
                                             break;
@@ -514,7 +917,7 @@ public class Service { // singleton
                                     }
                                     ((KidsLibrary)entry.getValue()).setBooks(cbooks);
 
-                                    ((KidsLibrary)entry.getValue()).removeFromStock(it.getTitle());
+                                    ((KidsLibrary)entry.getValue()).removeFromStock(it);
                                     flagb = true;
                                     break;
                                 }
@@ -540,6 +943,7 @@ public class Service { // singleton
     }
 
     public void addOffer() {
+        audit.WriteTimestamp("Add offer");
         Scanner var = new Scanner(System.in);
         offerService = OfferService.getInstance();
 
@@ -560,16 +964,18 @@ public class Service { // singleton
                     if (entry.getValue() instanceof BigLibrary) {
                         System.out.println("Big library");
 
-                        BigOffer offer = offerService.readBigOffer();
+                        Integer offer = offerService.readBigOffer();
 
-                        List<Offer> offers = ((BigLibrary)entry.getValue()).getOffers();
+                        List<Integer> offers = ((BigLibrary)entry.getValue()).getOffers();
                         offers.add(offer);
-                        List<BigOffer> aux = (List<BigOffer>)(List<?>) offers;
-                        ((BigLibrary)entry.getValue()).setOffers(aux);
+                        List<Integer> aux = (List<Integer>)(List<?>) offers;
+                        ((BigLibrary)entry.getValue()).setOffers(offers);
 
-                        System.out.print("Introduce the stock of the offer: ");
-                        int stock = var.nextInt();
-                        ((BigLibrary)entry.getValue()).updateStock(offer.getName(), stock);
+                        System.out.println("Offer added successfully!\n");
+
+//                        System.out.print("Introduce the stock of the offer: ");
+//                        int stock = var.nextInt();
+//                        ((BigLibrary)entry.getValue()).updateStock(offer, stock);
 
                     } else if (entry.getValue() instanceof KidsLibrary) {
 
@@ -577,22 +983,20 @@ public class Service { // singleton
 
                         System.out.println("Kids library");
 
-                        KidsOffer offer = offerService.readKidsOffer();
+                        Integer offer = offerService.readKidsOffer();
 
-                        List<Offer> offers = ((KidsLibrary)entry.getValue()).getOffers();
+                        List<Integer> offers = ((KidsLibrary)entry.getValue()).getOffers();
                         offers.add(offer);
-                        List<KidsOffer> aux = (List<KidsOffer>)(List<?>) offers;
+                        List<Integer> aux = (List<Integer>)(List<?>) offers;
                         ((KidsLibrary)entry.getValue()).setOffers(aux);
 
-                        System.out.print("Introduce the stock of the offer: ");
-                        int stock = var.nextInt();
-                        ((KidsLibrary)entry.getValue()).updateStock(offer.getName(), stock);
+                        System.out.println("Offer added successfully!\n");
+
 
                     } else {
                         System.out.println("This library doesn't accept offers.");
                     }
 
-                    System.out.println("Offer added successfully!\n");
                     break;
                 }
             }
@@ -606,6 +1010,7 @@ public class Service { // singleton
     }
 
     public void addOrder() {
+        audit.WriteTimestamp("Add order");
         Scanner var = new Scanner(System.in);
 
         Order order = new Order();
@@ -636,19 +1041,33 @@ public class Service { // singleton
     }
 
     public void cancelOrder() {
+        audit.WriteTimestamp("Cancel order");
         Scanner var = new Scanner(System.in);
         System.out.print("Please insert the ID of the order you want to cancel: ");
-        int option = var.nextInt();
 
-        if (this.orders.containsKey(option)){
-            this.orders.remove(option);
-            System.out.println("Order removed successfully!\n");
-        } else {
-            System.out.println("Order ID " + option + " doesn't exist.");
+        int option = 0;
+        while (true) {
+            try {
+                option = var.nextInt();
+                if (this.orders.containsKey(option)){
+                    this.orders.remove(option);
+                    System.out.println("Order removed successfully!\n");
+                    break;
+                } else {
+                    throw new IndexOutOfBoundsException("ID not in list.");
+                }
+            } catch (InputMismatchException e) {
+                var.next();
+                System.out.print("Please insert a number: ");
+            } catch (Exception e) {
+                System.out.print("Order ID " + option + " doesn't exist.");
+            }
         }
+
     }
 
     public void sortLibraries(){
+        audit.WriteTimestamp("Print sorted libraries");
         Set<Map.Entry<Integer, Library>> set = new TreeSet<>(new Sort());
         set.addAll(this.shops.entrySet());
 
@@ -658,6 +1077,7 @@ public class Service { // singleton
     }
 
     public void rateLibrary(){
+        audit.WriteTimestamp("Rate a library");
         Scanner var = new Scanner(System.in);
 
         if (shops.isEmpty()) {
