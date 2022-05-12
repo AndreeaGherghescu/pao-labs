@@ -1,9 +1,6 @@
 package com.company.library;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class BigLibrary extends Library{
     private List<Integer> novels;
@@ -17,7 +14,7 @@ public class BigLibrary extends Library{
         this.manuals = new ArrayList<Integer>();
     }
 
-    public BigLibrary(String name, double rating, HashMap<Integer, Integer> stock, List<Integer> novels, List<Integer> offers, List<Integer> manuals) {
+    public BigLibrary(String name, double rating, Map<Integer, Integer> stock, List<Integer> novels, List<Integer> offers, List<Integer> manuals) {
         super(name, rating, stock);
         this.novels = novels;
         this.offers = offers;

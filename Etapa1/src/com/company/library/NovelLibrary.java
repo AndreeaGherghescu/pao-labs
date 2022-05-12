@@ -13,7 +13,7 @@ public class NovelLibrary extends Library{
         this.novels = new ArrayList<Integer>();
     }
 
-    public NovelLibrary(String name, double rating, HashMap<Integer, Integer> stock, List<Integer> novels) {
+    public NovelLibrary(String name, double rating, Map<Integer, Integer> stock, List<Integer> novels) {
         super(name, rating, stock);
         this.novels = novels;
     }

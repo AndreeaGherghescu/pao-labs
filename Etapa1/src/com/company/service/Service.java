@@ -21,8 +21,8 @@ import java.util.stream.Stream;
 public class Service { // singleton
     private static Service single_instance = null;
     private Login login;
-    private HashMap<Integer, Library> shops;
-    private HashMap<Integer, Order> orders;
+    private Map<Integer, Library> shops;
+    private Map<Integer, Order> orders;
     private User currentUser;
     private int shopId;
     private int orderId;
@@ -209,7 +209,7 @@ public class Service { // singleton
                 }
             }
 
-            HashMap<Integer, Integer> stock = new HashMap<Integer, Integer>();
+            Map<Integer, Integer> stock = new HashMap<Integer, Integer>();
 
             System.out.print("Library's name: ");
             String name = var.nextLine();

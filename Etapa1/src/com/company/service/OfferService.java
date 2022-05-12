@@ -9,7 +9,7 @@ import java.util.*;
 public class OfferService {
     private static OfferService single_instance = null;
     private BookService bookService;
-    private HashMap<Integer, Offer> offers;
+    private Map<Integer, Offer> offers;
     private int offerId = 0;
 
     private OfferService() {
@@ -341,7 +341,7 @@ public class OfferService {
         return new KidsOffer(choice.getName(), m, choice.getChildBook(), choice.getToy());
     }
 
-    public HashMap<Integer, Offer> getOffers() {
+    public Map<Integer, Offer> getOffers() {
         return offers;
     }
 

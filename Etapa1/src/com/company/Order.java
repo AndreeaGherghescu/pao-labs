@@ -96,7 +96,7 @@ public class Order {
         this.books.add(book);
     }
 
-    public void reader(HashMap<Integer, Library> shops) {
+    public void reader(Map<Integer, Library> shops) {
         Scanner var = new Scanner(System.in);
         offerService = OfferService.getInstance();
         bookService = BookService.getInstance();

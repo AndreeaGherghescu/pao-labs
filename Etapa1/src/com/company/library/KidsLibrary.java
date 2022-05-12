@@ -12,7 +12,7 @@ public class KidsLibrary extends Library{
         this.books = new ArrayList<Integer>();
     }
 
-    public KidsLibrary(String name, double rating, HashMap<Integer, Integer> stock, List<Integer> offers, List<Integer> books){
+    public KidsLibrary(String name, double rating, Map<Integer, Integer> stock, List<Integer> offers, List<Integer> books){
         super(name, rating, stock);
         this.books = books;
         this.offers = offers;

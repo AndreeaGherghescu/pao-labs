@@ -10,7 +10,7 @@ import java.util.*;
 public abstract class Library {
     protected String name;
     protected double rating;
-    HashMap<Integer, Integer> stock;
+    Map<Integer, Integer> stock;
     protected OfferService offerService;
     protected BookService bookService;
 
@@ -18,7 +18,7 @@ public abstract class Library {
         this.stock = new HashMap<Integer, Integer>();
     }
 
-    public Library(String name, double rating, HashMap<Integer, Integer> stock) {
+    public Library(String name, double rating, Map<Integer, Integer> stock) {
         this.name = name;
         this.rating = rating;
         this.stock = stock;
@@ -88,7 +88,7 @@ public abstract class Library {
         this.name = name;
     }
 
-    public void setStock(HashMap<Integer, Integer> stock) {
+    public void setStock(Map<Integer, Integer> stock) {
         this.stock = stock;
     }
 

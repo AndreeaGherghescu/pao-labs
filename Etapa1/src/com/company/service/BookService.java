@@ -11,7 +11,7 @@ import java.util.*;
 
 public class BookService {
     private static BookService single_instance = null;
-    private HashMap<Integer, Book> books;
+    private Map<Integer, Book> books;
     private int bookId;
 
     private BookService() {}
@@ -49,6 +49,10 @@ public class BookService {
         }
 
     }
+
+    // test
+
+    // test
 
     public Integer readChildBook() {
         Scanner var = new Scanner(System.in);
@@ -195,7 +199,7 @@ public class BookService {
         return bookId - 1;
     }
 
-    public HashMap<Integer, Book> getBooks() {
+    public Map<Integer, Book> getBooks() {
         return books;
     }
 
