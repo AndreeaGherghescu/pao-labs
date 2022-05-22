@@ -8,12 +8,18 @@ public class Novel extends Book{
 
     public Novel(){}
 
-    public Novel(String titile, String author, double price, int edition, String genre){
-        super(author, titile, price);
+    public Novel(String title, String author, double price, int edition, String genre){
+        super(title, author, price);
         this.edition = edition;
         this.genre = genre;
     }
 
+    public int getEdition() {
+        return edition;
+    }
+    public String getGenre() {
+        return genre;
+    }
 
     @Override
     public String toString () {

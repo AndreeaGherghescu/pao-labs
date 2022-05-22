@@ -1,13 +1,13 @@
 package com.company.product;
 
 public abstract class Book {
-    protected String author; // poate o sa fac lista
+    protected String author;
     protected String title;
     protected double price;
 
     public Book(){}
 
-    public Book(String author, String title, double price) {
+    public Book(String title, String author, double price) {
         this.author = author;
         this.title = title;
         this.price = price;
@@ -21,6 +21,9 @@ public abstract class Book {
         return this.title;
     }
 
+    public String getAuthor() {
+        return author;
+    }
 
     @Override
     public abstract String toString();

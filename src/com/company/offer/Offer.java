@@ -1,22 +1,26 @@
 package com.company.offer;
 
 import com.company.product.Manual;
+import com.company.service.BookService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Offer {
     protected String name;
-    protected List<Manual> manuals;
+    protected List<Integer> manuals;
     protected double price;
+    protected BookService bookService;
 
     public Offer(){
-        this.manuals = new ArrayList<Manual>();
+        this.manuals = new ArrayList<Integer>();
+        bookService = BookService.getInstance();
     }
 
-    public Offer(String name, List<Manual> manuals) {
+    public Offer(String name, List<Integer> manuals) {
         this.name = name;
         this.manuals = manuals;
+        bookService = BookService.getInstance();
     }
 
     @Override
@@ -30,7 +34,7 @@ public abstract class Offer {
         return name;
     }
 
-    public List<Manual> getManuals() {
+    public List<Integer> getManuals() {
         return manuals;
     }
 
