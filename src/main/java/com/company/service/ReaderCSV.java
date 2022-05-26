@@ -21,10 +21,16 @@ public class ReaderCSV<T> {
     private int bookId;
     private Set<User> usersReg;
     private BookService bookService;
+    private Login login;
+    private static boolean flag = false;
 
     public ReaderCSV(){
         this.usersReg = new HashSet<User>();
-        readUsers();
+        if (!flag) {
+            readUsers();
+            flag = true;
+        }
+
     }
 
 
@@ -44,6 +50,7 @@ public class ReaderCSV<T> {
 
     public List<Book> readNovelsCSV(String path) {
         List<Book> novels = new ArrayList<Book>();
+        bookService = BookService.getInstance();
 
         try {
             BufferedReader buffer = new BufferedReader(new FileReader(path));
@@ -76,6 +83,7 @@ public class ReaderCSV<T> {
 
     public List<Book> readManualsCSV (String path) {
         List<Book> manuals = new ArrayList<>();
+        bookService = BookService.getInstance();
 
         try {
             BufferedReader buffer = new BufferedReader(new FileReader(path));
@@ -110,6 +118,7 @@ public class ReaderCSV<T> {
 
     public List<Book> readChildBooksCSV (String path) {
         List<Book> childBooks = new ArrayList<>();
+        bookService = BookService.getInstance();
 
         try {
             BufferedReader buffer = new BufferedReader(new FileReader(path));
@@ -142,12 +151,14 @@ public class ReaderCSV<T> {
     }
 
     private void readUsers() {
+        login = Login.getInstance();
         User admin = new User("admin", "admin@gmail.com", "0765743376", "parolaaa");
         this.usersReg.add(admin);
+        login.insertUser(admin);
 
         // citesc userii din CSV
         try {
-            String path = "Files/Users.csv";
+            String path = "files/Users.csv";
             BufferedReader buffer = new BufferedReader(new FileReader(path));
 
             String line = buffer.readLine();
@@ -157,6 +168,7 @@ public class ReaderCSV<T> {
                 String[] array = line.split(",");
                 User user = new User(array[0], array[1], array[2], array[3]);
                 this.usersReg.add(user);
+                login.insertUser(user);
                 line = buffer.readLine();
             }
         } catch (IOException e) {

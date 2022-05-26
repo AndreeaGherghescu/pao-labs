@@ -4,6 +4,7 @@ import java.util.Scanner;
 
 public class Application { // singleton
     private static Application single_instance = null;
+    private Service service;
 
     private Application(){}
 
@@ -97,12 +98,14 @@ public class Application { // singleton
         System.out.println("2. Remove library"); // done
         System.out.println("3. Add book to repository"); // done
         System.out.println("4. Add book to library");
-        System.out.println("5. Delete a book"); // done
-        System.out.println("6. Add an offer"); // done
-        System.out.println("7. Sign out"); // done
-        System.out.println("8. List libraries"); // done
-        System.out.println("9. List one library"); // done
-        System.out.println("10. Exit"); //done
+        System.out.println("5. Delete a book from library"); // done
+        System.out.println("6. Delete a book from repository");
+        System.out.println("7. Add an offer"); // done
+        System.out.println("8. Sign out"); // done
+        System.out.println("9. List libraries"); // done
+        System.out.println("10. List one library"); // done
+        System.out.println("11. Update manual grade");
+        System.out.println("12. Exit"); //done
     }
 
     private void adminActions(Service service) {
@@ -110,7 +113,7 @@ public class Application { // singleton
         this.listOfActionsForAdmin(service);
 
         while(true) {
-            System.out.print("Please choose an option from 0 to 9: ");
+            System.out.print("Please choose an option from 0 to 12: ");
             int choice = var.nextInt();
             var.nextLine();
             System.out.println();
@@ -137,28 +140,36 @@ public class Application { // singleton
                     service.addBookToLibrary();
                     break;
                 case 5:
-                    //stergere carte
-                    service.removeBook();
+                    //stergere carte din librarie
+                    service.removeBookFromLibrary();
                     break;
                 case 6:
+                    // stergere carte din repo
+                    service.removeBook();
+                    break;
+                case 7:
                     //adauga oferta
                     service.addOffer();
                     break;
-                case 7:
+                case 8:
                     //delogare
                     service.signOut();
                     start();
                     out = true;
                     break;
-                case 8:
+                case 9:
                     //list libraries
                     service.listLibraries();
                     break;
-                case 9:
+                case 10:
                     //list one library
                     service.listLibrary();
                     break;
-                case 10:
+                case 11:
+                    // update manual grade
+                    service.updateManualGrade();
+                    break;
+                case 12:
                     //exit
                     out = true;
                     break;
@@ -173,7 +184,7 @@ public class Application { // singleton
     }
 
     public void start() {
-        Service service = Service.getInstance();
+        service = Service.getInstance();
 
         if(service.singIn() == 1){
             // logged in as admin

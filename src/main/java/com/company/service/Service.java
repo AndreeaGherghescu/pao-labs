@@ -14,6 +14,8 @@ import com.company.product.Manual;
 import com.company.product.Novel;
 import com.company.user.User;
 
+import java.lang.invoke.WrongMethodTypeException;
+import java.sql.SQLOutput;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,6 +31,7 @@ public class Service { // singleton
     private OfferService offerService;
     private BookService bookService;
     private AuditService audit;
+    private static boolean flagLog = false;
 
     private Service(){
         this.shops = new HashMap<Integer, Library>();
@@ -48,11 +51,20 @@ public class Service { // singleton
     }
 
     public int singIn(){
-        login = Login.getInstance();
-        bookService = BookService.getInstance();
+        if (!flagLog) {
+            login = Login.getInstance();
+            bookService = BookService.getInstance();
+            offerService = OfferService.getInstance();
 
-        login.setUsersReg(new ReaderCSV<User>().getUsersReg());
-        bookService.readBooks();
+            login.createTable();
+            login.setUsersReg(new ReaderCSV<User>().getUsersReg());
+
+            bookService.createTables();
+            bookService.readBooks();
+
+            offerService.createTables();
+            flagLog = true;
+        }
 
         Scanner var = new Scanner(System.in);
 
@@ -111,7 +123,7 @@ public class Service { // singleton
                     if (ok)
                         break;
                     else
-                        System.out.print("Please give a valid phone number: ");
+                        System.out.println("Please give a valid phone number. ");
                 }
                 System.out.print("Password: ");
                 String password = var.nextLine();
@@ -144,6 +156,11 @@ public class Service { // singleton
         audit.WriteTimestamp("List one library");
         Scanner var = new Scanner(System.in);
 
+        if (shops.isEmpty()) {
+            System.out.println("There are no libraries.");
+            return;
+        }
+
         System.out.print("What library do you want to list? Please introduce the name: ");
         String name = var.nextLine();
         System.out.println("");
@@ -166,7 +183,7 @@ public class Service { // singleton
 
     public void listLibraries(){
         audit.WriteTimestamp("List libraries");
-        System.out.println("Libraries:");
+
 //        Set set = shops.entrySet();
 //        for (Object o : set) {
 //            Map.Entry entry = (Map.Entry) o;
@@ -175,6 +192,11 @@ public class Service { // singleton
 //        }
 
         // stream si lambda
+        if (shops.isEmpty()) {
+            System.out.println("There are no libraries.");
+            return;
+        }
+        System.out.println("Libraries:");
         shops.entrySet().stream().forEach(e -> System.out.println(((Map.Entry)e).getValue()));
 
     }
@@ -295,9 +317,10 @@ public class Service { // singleton
 //                  ChildBook book = bookService.readChildBook();
 //                  books.add(book);
 
-                    System.out.print("Please choose the id of the book you want to add: ");
+
                     while (true) {
                         try {
+                            System.out.print("Please choose the id of the book you want to add: ");
                             int alege = var.nextInt() - 1;
                             int id = allChild.get(alege);
                             if (allChild.contains(id) && !childBooks.contains(id)) {
@@ -562,7 +585,7 @@ public class Service { // singleton
     }
 
     public void addBook() {
-        audit.WriteTimestamp("Add book");
+        audit.WriteTimestamp("Add book to database");
         Scanner var  = new Scanner(System.in);
         bookService = BookService.getInstance();
 
@@ -768,8 +791,8 @@ public class Service { // singleton
         }
     }
 
-    public void removeBook(){
-        audit.WriteTimestamp("Remove book");
+    public void removeBookFromLibrary(){
+        audit.WriteTimestamp("Remove book from library");
         Scanner var = new Scanner(System.in);
 
         Set set = shops.entrySet();
@@ -789,49 +812,18 @@ public class Service { // singleton
 
                         List<Integer> books = ((BigLibrary)entry.getValue()).getBooks();
 
-                        List<Book> allBooks = books.stream().
-                                map(e -> bookService.getBookById(e)).
-                                collect(Collectors.toList());
+//                        List<Book> allBooks = books.stream().
+//                                map(e -> bookService.getBookById(e)).
+//                                collect(Collectors.toList());
 
                         boolean flagb = false;
                         while (true) {
                             System.out.print("Introduce the name of the book you want to remove: ");
                             String option = var.nextLine();
 
-//                            for (Book b: allBooks) {
-//                                if (b.getTitle().equalsIgnoreCase(option)) {
-//                                    if (b instanceof Novel){
-//
-//                                        List<Integer> novels = ((BigLibrary)entry.getValue()).getNovels();
-//
-//                                        for (Integer nov: novels){
-//                                            if(nov.equals()){
-//                                                novels.remove(it);
-//                                                break;
-//                                            }
-//                                        }
-//                                        ((BigLibrary)entry.getValue()).setNovels(novels);
-//
-//                                    } else {
-//                                        List<Integer> manuals = ((BigLibrary)entry.getValue()).getManuals();
-//                                        for (Integer man: manuals){
-//                                            if(man.equals(it)){
-//                                                manuals.remove(it);
-//                                                break;
-//                                            }
-//                                        }
-//                                        ((BigLibrary)entry.getValue()).setManuals(manuals);
-//                                    }
-//
-//                                    ((BigLibrary)entry.getValue()).removeFromStock(it);
-//                                    flagb = true;
-//                                    break;
-//                                }
-//                            }
-
                             for (Integer it: books) {
                                 if (bookService.getTitleById(it).equalsIgnoreCase(option)) {
-                                    Book carte = bookService.getBookById(it);
+                                    Book carte = bookService.getBookByIdSQL(it); // modificat
                                     if (carte instanceof Novel){
 
                                         List<Integer> novels = ((BigLibrary)entry.getValue()).getNovels();
@@ -843,7 +835,7 @@ public class Service { // singleton
                                         }
                                         ((BigLibrary)entry.getValue()).setNovels(novels);
 
-                                    } else {
+                                    } else { // manual
                                         List<Integer> manuals = ((BigLibrary)entry.getValue()).getManuals();
                                         for (Integer man: manuals){
                                             if(man.equals(it)){
@@ -938,6 +930,33 @@ public class Service { // singleton
                 System.out.println("Invalid library name. Please try again.");
             } else {
                 break;
+            }
+        }
+    }
+    public void removeBook() {
+        audit.WriteTimestamp("Remove book from database");
+        Scanner var = new Scanner(System.in);
+        bookService = BookService.getInstance();
+
+        System.out.print("What type of book do you want to remove? (manual/novel/child book): ");
+
+        while (true) {
+            try {
+                String type = var.nextLine();
+                if (type.equalsIgnoreCase("manual")) {
+                    bookService.removeManual();
+                    break;
+                } else if (type.equalsIgnoreCase("novel")) {
+                    bookService.removeNovel();
+                    break;
+                } else if (type.equalsIgnoreCase("child book")) {
+                    bookService.removeChildBook();
+                    break;
+                } else {
+                    throw new Exception("This type of book does not exist");
+                }
+            } catch (Exception e) {
+                System.out.print("Please insert a valid option: ");
             }
         }
     }
@@ -1043,6 +1062,11 @@ public class Service { // singleton
     public void cancelOrder() {
         audit.WriteTimestamp("Cancel order");
         Scanner var = new Scanner(System.in);
+
+        if (orders.isEmpty()) {
+            System.out.println("There are no orders yet.");
+            return;
+        }
         System.out.print("Please insert the ID of the order you want to cancel: ");
 
         int option = 0;
@@ -1113,6 +1137,69 @@ public class Service { // singleton
                 }
             }
         }
+
+    }
+
+    public void updateManualGrade() {
+        audit.WriteTimestamp("Update manual grade");
+        bookService = BookService.getInstance();
+        Scanner var = new Scanner(System.in);
+
+        List <Integer> manuals = bookService.getManuals();
+
+        if (manuals.size() == 0){
+            System.out.println("There are no manuals.");
+            return;
+        }
+
+        System.out.println("List of manuals");
+        for (int i = 0; i < manuals.size(); i++) {
+            System.out.println((i + 1) + ". " + bookService.getTitleById(manuals.get(i)));
+        }
+
+        int id = 0;
+        System.out.print("Introduce the title of the manual you want to modify: ");
+        while (true) {
+            try {
+                boolean flag = false;
+                String title = var.nextLine();
+                for (int i = 0; i < manuals.size(); i++) {
+                    if (bookService.getTitleById(manuals.get(i)).equalsIgnoreCase(title)) {
+                        id = manuals.get(i);
+                        flag = true;
+                        break;
+                    }
+                }
+                if (!flag) {
+                    throw new Exception("Invalid title");
+                }
+                else {
+                    break;
+                }
+            } catch (Exception e) {
+                System.out.print("The title you introduced does not exist. Try again: ");
+            }
+        }
+
+        System.out.print("Introduce the new grade: ");
+        int grade;
+        while (true) {
+            try {
+                grade = var.nextInt();
+                if (grade >= 0 && grade <= 12) {
+                    break;
+                } else {
+                    throw new Exception("Invalid grade");
+                }
+            } catch (InputMismatchException e) {
+                var.next();
+                System.out.print("Please insert a number: ");
+            } catch (Exception e) {
+                System.out.print("Please introduce a valid grade: ");
+            }
+        }
+
+        bookService.updateManualGrade(grade, id);
 
     }
 }

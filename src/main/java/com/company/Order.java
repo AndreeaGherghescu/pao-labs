@@ -53,7 +53,6 @@ public class Order {
                 map(o -> o.getPrice()).
                 collect(Collectors.toList());
 
-        // TODO sa calculez pretul unei selectii de oferta
 
         totalPrice += allOffers.stream().reduce(0., Double::sum);
 
@@ -104,10 +103,11 @@ public class Order {
         System.out.print("Delivery address: ");
         this.address = var.nextLine();
 
-        System.out.println("List of libraries: ");
+
         if (shops.isEmpty()) {
             System.out.println("No libraries found.");
         } else {
+            System.out.println("List of libraries: ");
             Set set = shops.entrySet();
             Iterator it = set.iterator();
 //
