@@ -1,9 +1,14 @@
 package com.company.service;
 
+import com.company.config.DatabaseConfiguration;
 import com.company.offer.BigOffer;
 import com.company.offer.KidsOffer;
 import com.company.offer.Offer;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 
 public class OfferService {
@@ -21,6 +26,68 @@ public class OfferService {
             single_instance = new OfferService();
 
         return single_instance;
+    }
+
+    public void createTables() {
+        String createTableSql = "CREATE TABLE IF NOT EXISTS bigOffer " +
+                "(id int PRIMARY KEY, " +
+                "price double)";
+
+        Connection connection = DatabaseConfiguration.getDatabaseConnection();
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(createTableSql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        createTableSql = "CREATE TABLE IF NOT EXISTS kidsOffer " +
+                "(id int PRIMARY KEY, " +
+                "price double, " +
+                "book int, " +
+                "toy varchar(10))";
+
+        connection = DatabaseConfiguration.getDatabaseConnection();
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(createTableSql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // create
+    public void insertKidsOffer(KidsOffer offer) {
+        String insertOfferSql = "INSERT INTO kidsOffer(id, name, price, book, toy) VALUES(?, ?, ?, ?, ?)";
+
+        Connection connection = DatabaseConfiguration.getDatabaseConnection();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertOfferSql)) {
+            preparedStatement.setInt(1, offerId++);
+            preparedStatement.setString(2, offer.getName());
+            preparedStatement.setDouble(3, offer.getPrice());
+            preparedStatement.setInt(4, offer.getChildBook());
+            preparedStatement.setString(5, offer.getToy());
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void insertBigOffer(BigOffer offer) {
+        String insertOfferSql = "INSERT INTO bigOffer(id, name, price) VALUES(?, ?, ?)";
+
+        Connection connection = DatabaseConfiguration.getDatabaseConnection();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertOfferSql)) {
+            preparedStatement.setInt(1, offerId++);
+            preparedStatement.setString(2, offer.getName());
+            preparedStatement.setDouble(3, offer.getPrice());
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public Integer readBigOffer() {

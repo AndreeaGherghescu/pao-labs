@@ -1,0 +1,69 @@
+package com.company.config;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DatabaseConfiguration {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/PAO";
+    private static final String USER = "root";
+    private static final String PASSWORD = "root";
+    private static Connection databaseConnection;
+
+    private DatabaseConfiguration() {
+    }
+
+    public static Connection getDatabaseConnection() {
+        try {
+            if (databaseConnection == null || databaseConnection.isClosed()) {
+                databaseConnection = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return databaseConnection;
+    }
+
+    public static void closeDatabaseConnection() {
+        try {
+            if (databaseConnection != null && !databaseConnection.isClosed()) {
+                String dropTableSql = "DROP TABLE childBook ";
+                Connection connection = DatabaseConfiguration.getDatabaseConnection();
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(dropTableSql);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                dropTableSql = "DROP TABLE novel";
+                connection = DatabaseConfiguration.getDatabaseConnection();
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(dropTableSql);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                dropTableSql = "DROP TABLE manual";
+                connection = DatabaseConfiguration.getDatabaseConnection();
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(dropTableSql);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                dropTableSql = "DROP TABLE user";
+                connection = DatabaseConfiguration.getDatabaseConnection();
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(dropTableSql);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                databaseConnection.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}

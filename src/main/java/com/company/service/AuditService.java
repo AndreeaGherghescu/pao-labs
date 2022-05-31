@@ -13,7 +13,7 @@ public class AuditService { //singleton
 
     private AuditService(){
         try {
-            String path = "Files/Audit.csv";
+            String path = "files/Audit.csv";
 
             new FileWriter(path, true).close();
             buffer = new BufferedWriter(new FileWriter(path, true));

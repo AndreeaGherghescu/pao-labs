@@ -16,8 +16,8 @@ public class WriterCSV<T> {
     public WriterCSV() {}
     public void writeUser(User user) {
         try {
-            buffer = new BufferedWriter(new FileWriter("Files/Users.csv", true));
-            new FileWriter("Files/Users.csv", true).close();
+            buffer = new BufferedWriter(new FileWriter("files/Users.csv", true));
+            new FileWriter("files/Users.csv", true).close();
             buffer.write(",\n" + user.getName() + "," + user.getEmail() + "," + user.getPhoneNumber() + "," + user.getPassword());
             buffer.flush();
 
@@ -40,8 +40,8 @@ public class WriterCSV<T> {
 
     public void writeNovelCSV (Novel novel) {
         try {
-            buffer = new BufferedWriter(new FileWriter("Files/Novels.csv", true));
-            new FileWriter("Files/Novels.csv", true).close();
+            buffer = new BufferedWriter(new FileWriter("files/Novels.csv", true));
+            new FileWriter("files/Novels.csv", true).close();
             buffer.write(",\n" + novel.getTitle() + "," + novel.getAuthor() + "," + novel.getPrice() + "," + novel.getEdition() + "," + novel.getGenre());
             buffer.flush();
 
@@ -52,8 +52,8 @@ public class WriterCSV<T> {
 
     public void writeManualCSV (Manual manual) {
         try {
-            buffer = new BufferedWriter(new FileWriter("Files/Manuals.csv", true));
-            new FileWriter("Files/Manuals.csv", true).close();
+            buffer = new BufferedWriter(new FileWriter("files/Manuals.csv", true));
+            new FileWriter("files/Manuals.csv", true).close();
             buffer.write(",\n" + manual.getTitle() + "," + manual.getAuthor() + "," + manual.getPrice() + "," + manual.getSubject() + "," + manual.getGrade());
             buffer.flush();
 
@@ -64,8 +64,8 @@ public class WriterCSV<T> {
 
     public void writeChildBookCSV (ChildBook book) {
         try {
-            buffer = new BufferedWriter(new FileWriter("Files/ChildBooks.csv", true));
-            new FileWriter("Files/ChildBooks.csv", true).close();
+            buffer = new BufferedWriter(new FileWriter("files/ChildBooks.csv", true));
+            new FileWriter("files/ChildBooks.csv", true).close();
             buffer.write(",\n" + book.getTitle() + "," + book.getAuthor() + "," + book.getPrice() + "," + book.getMinAge());
             buffer.flush();
 
