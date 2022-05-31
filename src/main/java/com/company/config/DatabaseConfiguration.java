@@ -28,6 +28,38 @@ public class DatabaseConfiguration {
     public static void closeDatabaseConnection() {
         try {
             if (databaseConnection != null && !databaseConnection.isClosed()) {
+                String dropTableSql = "DROP TABLE childBook ";
+                Connection connection = DatabaseConfiguration.getDatabaseConnection();
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(dropTableSql);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                dropTableSql = "DROP TABLE novel";
+                connection = DatabaseConfiguration.getDatabaseConnection();
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(dropTableSql);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                dropTableSql = "DROP TABLE manual";
+                connection = DatabaseConfiguration.getDatabaseConnection();
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(dropTableSql);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                dropTableSql = "DROP TABLE user";
+                connection = DatabaseConfiguration.getDatabaseConnection();
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(dropTableSql);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
                 databaseConnection.close();
             }
         } catch (SQLException e) {
